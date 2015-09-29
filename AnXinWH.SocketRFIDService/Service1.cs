@@ -13,14 +13,6 @@ using AnXinWH.SocketRFIDService.Job;
 using log4net;
 using Quartz;
 using Quartz.Impl;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using System.ServiceProcess;
-using System.Text;
 
 namespace AnXinWH.SocketRFIDService
 {

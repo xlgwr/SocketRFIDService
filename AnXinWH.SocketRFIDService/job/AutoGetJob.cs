@@ -9,6 +9,9 @@ using System.Reflection;
 using System.Xml;
 using System.IO;
 
+
+using MysqlDbContext = ClassLibraryApi.AnXinWH.AnXinWH;
+
 namespace AnXinWH.SocketRFIDService.Job
 {
     [PersistJobDataAfterExecution]
@@ -23,7 +26,11 @@ namespace AnXinWH.SocketRFIDService.Job
 
             try
             {
-            
+                using (var db=new MysqlDbContext())
+                {
+                    var tmpcont = db.m_users.Count();
+                    logger.DebugFormat("********************{0} 个用户.",tmpcont);
+                }
             }
             catch (Exception ex)
             {
