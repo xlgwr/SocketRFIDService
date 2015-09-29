@@ -148,6 +148,11 @@ namespace AnXinWH.SocketRFIDService
             {
                 TcpListernerThread.s_bolWork = false;
             }
+            if (TcpListernerThread.ms != null)
+            {
+                TcpListernerThread.mThread.Abort();
+                TcpListernerThread.ms.Dispose();
+            }
         }
 
     }

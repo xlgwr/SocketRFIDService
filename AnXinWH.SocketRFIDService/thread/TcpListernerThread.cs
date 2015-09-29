@@ -15,7 +15,7 @@ using log4net;
 
 namespace AnXinWH.SocketRFIDService
 {
-    public class TcpListernerThread
+    public class TcpListernerThread 
     {
         public readonly ILog logger;
         #region attr
@@ -70,7 +70,6 @@ namespace AnXinWH.SocketRFIDService
         {
             logger = LogManager.GetLogger(GetType());
         }
-
         #region 用TcpListener监听(测试)
 
         public static System.Net.Sockets.TcpListener mSocketL;
@@ -83,6 +82,10 @@ namespace AnXinWH.SocketRFIDService
 
         public static ManualResetEvent allDone = new ManualResetEvent(false);
 
+        public static System.Net.Sockets.Socket ms;
+        public static System.Net.IPAddress ipAddress = null;
+        //启动开始开始时间//
+        public static DateTime dtStatrt = DateTime.Now;
         public void GetMessage()
         {
             //如果newsock不为空，那说明不是第一次进来，那么只需要开启一下状态就好
@@ -95,10 +98,6 @@ namespace AnXinWH.SocketRFIDService
                 return;
             }
 
-
-
-            System.Net.Sockets.Socket ms;
-            System.Net.IPAddress ipAddress = null;
             try
             {
                 ipAddress = IPAddress.Parse(mIP);
@@ -132,6 +131,7 @@ namespace AnXinWH.SocketRFIDService
             }
             catch (Exception ex)
             {
+                ms.Dispose();
                 logger.Error(ex.Message.ToString());
             }
             finally
@@ -229,8 +229,6 @@ namespace AnXinWH.SocketRFIDService
 
         }
 
-        //启动开始开始时间//
-        public static DateTime dtStatrt = DateTime.Now;
 
         public void ReadCallback(IAsyncResult ar)
         {
@@ -253,11 +251,18 @@ namespace AnXinWH.SocketRFIDService
 
                 if (bytesReadLength > 0)
                 {
-                    logger.DebugFormat("######read {0} bytes from client.", bytesReadLength);
+                    byte[] tmpBuffer = new byte[bytesReadLength];
+                    Array.Copy(state.buffer, tmpBuffer, bytesReadLength);
+
+                    var to16 = tmpBuffer.ToList().Select(m => m.ToString("X")).ToArray();
+                    var toChar = tmpBuffer.ToList().Select(m => (Char)m).ToArray();
+
+                    logger.DebugFormat("######read from client {0} bytes,Buffer16: {1}, Char:{2}.", bytesReadLength, String.Join(",", to16), String.Join(" ", toChar));
 
                     //处理数据
-                    //test to send back                    
+                    //test to send back    
                     handler.Send(state.buffer, 0, bytesReadLength, SocketFlags.None);
+
                 }
 
 
@@ -270,7 +275,7 @@ namespace AnXinWH.SocketRFIDService
             {
                 if (handler.Connected == true)
                 {
-                    logger.DebugFormat("***********BeginReceive,{0}", handler);
+                    //logger.DebugFormat("***********BeginReceive,{0}", handler);
                     handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
 
                              new AsyncCallback(ReadCallback), state);
@@ -282,7 +287,6 @@ namespace AnXinWH.SocketRFIDService
                     {
                         logger.DebugFormat("***********hander close.{0}", handler);
                         handler.Close();
-
                     }
                 }
                 catch (Exception ex)
@@ -716,5 +720,6 @@ namespace AnXinWH.SocketRFIDService
         }
 
         #endregion 用TcpListener监听(测试)
+
     }
 }
