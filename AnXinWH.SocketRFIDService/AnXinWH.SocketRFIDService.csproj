@@ -78,6 +78,8 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Configuration.Install" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net.Http, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Net.Http.2.0.20710.0\lib\net40\System.Net.Http.dll</HintPath>
@@ -100,6 +102,7 @@
     <Compile Include="Basic\comm.cs" />
     <Compile Include="Basic\Logging\ILogger.cs" />
     <Compile Include="Basic\Logging\Logger.cs" />
+    <Compile Include="Basic\TaskPool.cs" />
     <Compile Include="Basic\WinLogWirter.cs" />
     <Compile Include="Dal\MysqlDbInterceptorLogging.cs">
       <SubType>Code</SubType>
@@ -108,6 +111,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="job\AutoGetJob.cs" />
+    <Compile Include="thread\TcpListernerThread.cs" />
     <Compile Include="Model\Class1.cs" />
     <Compile Include="Service1.cs">
       <SubType>Component</SubType>
@@ -117,6 +121,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TaskPool.cs" />
     <Compile Include="Test.cs" />
   </ItemGroup>
   <ItemGroup>

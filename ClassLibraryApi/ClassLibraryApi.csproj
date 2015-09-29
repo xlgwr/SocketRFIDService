@@ -130,7 +130,6 @@
     <Compile Include="AnXinWH\t_stockoutdetail.cs" />
     <Compile Include="AnXinWH\t_syslogrecd.cs" />
     <Compile Include="AnXinWH\t_terminaalarm.cs" />
-    <Compile Include="Class1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

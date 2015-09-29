@@ -7,14 +7,13 @@ mkdir ..\RtmV1
 
 ECHO µ±Ç°Ä¿Â¼£º%CD%
 
-del /Q log
+del /Q ..\Debug\log
+del /Q ..\RtmV1\log
 
 
 XCOPY ..\Debug\* ..\RtmV1\ /e /y
 
 cd ..\RtmV1
-
-del /Q log
 
 net start AnXinWH.SocketRFIDService
 
