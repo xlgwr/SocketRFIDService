@@ -140,11 +140,11 @@ namespace AnXinWH.SocketRFIDService
 
 
             var tmpType = Program._sysType.Equals("0") ? "入库" : "出库";
-            AllMsg("******************" + tmpType + "************************");
-            AllMsg("^^^^^^^^^^^^^^^^^^^" + tmpType + "^^^^^^^^^^^^^^^^^^^");
-            AllMsg("TcpListener 监听服务成功启动.*  * IP:" + TcpListernerThread.mIP + ", Port:" + TcpListernerThread.mPort);
-            AllMsg("___________________" + tmpType + "___________________");
-            AllMsg("******************" + tmpType + "************************");
+            AllMsg("******************[ " + tmpType + " ]************************");
+            AllMsg("*_* *_* *_* *_* *_*_______________#_# #_# #_# #_# #_# #_# ");
+            AllMsg("     *_* 监听服务成功启动.IP:" + TcpListernerThread.mIP + ", Port:" + TcpListernerThread.mPort);        
+            AllMsg("******************[ " + tmpType + " ]************************");
+            AllMsg("*_* *_* *_* *_* *_*_______________#_# #_# #_# #_# #_# #_# ");
 
 
             Thread tr = new Thread(tmptcp.GetMessage);
