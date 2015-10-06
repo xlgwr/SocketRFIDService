@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnXinWH.SocketRFIDService",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassLibraryApi", "ClassLibraryApi\ClassLibraryApi.csproj", "{2A246EB9-09C8-4597-B355-98E232B65805}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnXinWH.SocketRFIDClient", "AnXinWH.SocketRFIDClient\AnXinWH.SocketRFIDClient.csproj", "{09E42C3A-42DF-4AD9-84E1-2403911B6702}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{2A246EB9-09C8-4597-B355-98E232B65805}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A246EB9-09C8-4597-B355-98E232B65805}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A246EB9-09C8-4597-B355-98E232B65805}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09E42C3A-42DF-4AD9-84E1-2403911B6702}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09E42C3A-42DF-4AD9-84E1-2403911B6702}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09E42C3A-42DF-4AD9-84E1-2403911B6702}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09E42C3A-42DF-4AD9-84E1-2403911B6702}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

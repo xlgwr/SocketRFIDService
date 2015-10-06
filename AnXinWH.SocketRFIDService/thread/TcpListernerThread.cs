@@ -13,9 +13,12 @@ using System.Net.Sockets;
 using System.Net;
 using log4net;
 
+using MysqlDbContext = ClassLibraryApi.AnXinWH.AnXinWH;
+using MySql.Data.MySqlClient;
+
 namespace AnXinWH.SocketRFIDService
 {
-    public class TcpListernerThread 
+    public class TcpListernerThread
     {
         public readonly ILog logger;
         #region attr
@@ -100,6 +103,13 @@ namespace AnXinWH.SocketRFIDService
 
             try
             {
+                //init mysql db
+                using (var db = new MysqlDbContext())
+                {
+                    var tmpcont = db.m_users.Count();
+                    logger.DebugFormat("********************{0} 个用户.", tmpcont);
+                }
+
                 ipAddress = IPAddress.Parse(mIP);
 
                 IPEndPoint localEndPoint = new IPEndPoint(ipAddress, int.Parse(mPort));
@@ -164,7 +174,7 @@ namespace AnXinWH.SocketRFIDService
                 string w_strIP = clientipe.Address.ToString();
 
 
-                logger.DebugFormat("******AcceptCallBack.Enter Ip:{0}.", w_strIP);
+                logger.DebugFormat("******AcceptCallBack.Enter Ip: {0}.", w_strIP);
 
                 //IP如果存在于列表中，则需要去读设备的初始状态
                 //if (s_hasReportIdToIP.ContainsKey(w_strIP) == true)
@@ -228,7 +238,101 @@ namespace AnXinWH.SocketRFIDService
             handler.Close();
 
         }
+        /// <summary>
+        ///  <!--出入库标记，0：入库，1：出库-->
+        ///  出入库标记更新
+        ///  status 状态 smallint 默认1:可用 0:不可用
+        /// </summary>
+        /// <param name="sysType"></param>
+        /// <returns></returns>
+        public bool changeInOrOutStock(string sysType, string tmpStrRFID)
+        {
+            try
+            {
+                switch (sysType)
+                {
+                    case "0":
+                        //0：入库
 
+                        using (var db = new MysqlDbContext())
+                        {
+                            var tmpcont = db.t_stockinctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).Count();
+
+                            logger.DebugFormat("*入库********************t_stockinctnnodetail: {0} 条记录.rfid_no:{1}", tmpcont, tmpStrRFID);
+
+                            if (tmpcont > 0)
+                            {
+                                var tmpStatuscont = db.t_stockinctnnodetail.Where(m => m.status == 0).Count();
+                                if (tmpStatuscont <= 0)
+                                {
+                                    logger.DebugFormat("#入库**********#########t_stockinctnnodetail: 已经更新入库标记，共有{0}条已更新.rfid_no:{1}", tmpcont, tmpStrRFID);
+                                    return true;
+                                }
+
+                                string tmpUpdateSQL = "update t_stockinctnnodetail set STATUS='1' WHERE rfid_no=@rfid_no";
+                                var tmpRetunCount = db.Database.ExecuteSqlCommand(tmpUpdateSQL, new MySqlParameter("@rfid_no", tmpStrRFID.Trim()));
+
+                                if (tmpRetunCount > 0)
+                                {
+                                    return true;
+                                }
+                                return false;
+                            }
+                            else
+                            {
+                                return false;
+                            }
+
+                        }
+                        break;
+
+                    case "1":
+                        //1：出库
+                        using (var db = new MysqlDbContext())
+                        {
+                            var tmpcont = db.t_stockoutctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).Count();
+
+                            logger.DebugFormat("*出库********************t_stockoutctnnodetail: {0} 条记录.rfid_no:{1}", tmpcont, tmpStrRFID);
+
+                            if (tmpcont > 0)
+                            {
+                                var tmpStatuscont = db.t_stockinctnnodetail.Where(m => m.status == 1).Count();
+                                if (tmpStatuscont <= 0)
+                                {
+                                    logger.DebugFormat("#出库**********#########t_stockoutctnnodetail: 已经更新出库标记，共有{0}条已更新.rfid_no:{1}", tmpcont, tmpStrRFID);
+                                    return true;
+                                }
+
+                                string tmpUpdateSQL = "update t_stockoutctnnodetail set STATUS='0' WHERE rfid_no=@rfid_no";
+                                var tmpRetunCount = db.Database.ExecuteSqlCommand(tmpUpdateSQL, new MySqlParameter("@rfid_no", tmpStrRFID.Trim()));
+
+                                if (tmpRetunCount > 0)
+                                {
+                                    return true;
+                                }
+                                return false;
+                            }
+                            else
+                            {
+                                return false;
+                            }
+
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
+
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                logger.ErrorFormat("{0}:{1},flag:{2},rfid_no:{3}", 240, ex, sysType, tmpStrRFID);
+                return false;
+            }
+        }
 
         public void ReadCallback(IAsyncResult ar)
         {
@@ -251,17 +355,33 @@ namespace AnXinWH.SocketRFIDService
 
                 if (bytesReadLength > 0)
                 {
+                    IPEndPoint tclientipe = (IPEndPoint)handler.RemoteEndPoint;
+                    string tw_strIP = tclientipe.Address.ToString();
+
                     byte[] tmpBuffer = new byte[bytesReadLength];
                     Array.Copy(state.buffer, tmpBuffer, bytesReadLength);
 
                     var to16 = tmpBuffer.ToList().Select(m => m.ToString("X")).ToArray();
                     var toChar = tmpBuffer.ToList().Select(m => (Char)m).ToArray();
 
-                    logger.DebugFormat("######read from client {0} bytes,Buffer16: {1}, Char:{2}.", bytesReadLength, String.Join(",", to16), String.Join(" ", toChar));
+
+                    logger.DebugFormat("#read {0} client {1} bytes, String: {2},Buffer16:{3}.", tw_strIP, bytesReadLength, new string(toChar), String.Join(",", to16));
+                    logger.InfoFormat("#read {0} client {1} bytes,String: {2}, Buffer16:{3}.", tw_strIP, bytesReadLength, new string(toChar), String.Join(",", to16));
+
+
 
                     //处理数据
                     //test to send back    
                     handler.Send(state.buffer, 0, bytesReadLength, SocketFlags.None);
+
+                    //todo test
+                    changeInOrOutStock(Program._sysType, new string(toChar));
+
+                    //close current workSocket
+
+                    logger.DebugFormat("**##客户socket读取数据结束,Close current Connect IP:{0}", tw_strIP);
+
+                    handler.Close();
 
                 }
 

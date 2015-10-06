@@ -5,16 +5,51 @@ using System.Linq;
 using System.Net.Sockets;
 using System.ServiceProcess;
 using System.Text;
+using System.Configuration;
+using log4net;
+using System.Reflection;
+
 
 namespace AnXinWH.SocketRFIDService
 {
-    static class Program
+
+    public static class Program
     {
+        private static readonly ILog logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        /// <summary>
+        ///  <!--出入库标记，0：入库，1：出库-->
+        /// </summary>
+        public static string _sysType { get; private set; }
+
+        public static void setSysType()
+        {
+            try
+            {
+                _sysType = System.Configuration.ConfigurationManager.AppSettings["sysType"].ToString();
+            }
+            catch (Exception ex)
+            {
+                _sysType = "0";
+                logger.Error(ex);
+            }
+        }
+
 #if Dev
         private static void Main(string[] args)
         {
-            Test test = new Test();
-            test.OnStart();
+            try
+            {
+                setSysType();
+
+                Test test = new Test();
+                test.OnStart();
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+            }
+
         }
 
 #else
@@ -23,12 +58,21 @@ namespace AnXinWH.SocketRFIDService
         /// </summary>
         static void Main()
         {
-            ServiceBase[] ServicesToRun;
-            ServicesToRun = new ServiceBase[] 
-            { 
+            try
+            {
+                setSysType();
+                ServiceBase[] ServicesToRun;
+                ServicesToRun = new ServiceBase[] 
+                 { 
                 new Service1() 
-            };
-            ServiceBase.Run(ServicesToRun);
+                  };
+                ServiceBase.Run(ServicesToRun);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+            }
+
         }
 #endif
     }

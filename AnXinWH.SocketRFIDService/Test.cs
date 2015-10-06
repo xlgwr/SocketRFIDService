@@ -135,7 +135,10 @@ namespace AnXinWH.SocketRFIDService
             TcpListernerThread.mIP = ConfigurationManager.AppSettings["ServerIP"];
             TcpListernerThread.mPort = ConfigurationManager.AppSettings["ServerPort"];
 
-            AllMsg("**********TcpListener监听服务成功启动.IP:" + TcpListernerThread.mIP + ",Port:" + TcpListernerThread.mPort);
+            var tmpType = Program._sysType.Equals("0") ? "入库" : "出库";
+            AllMsg("******************" + tmpType + "************************");
+            AllMsg("TcpListener 监听服务成功启动.*  * IP:" + TcpListernerThread.mIP + ", Port:" + TcpListernerThread.mPort);
+            AllMsg("******************" + tmpType + "************************");
 
             Thread tr = new Thread(tmptcp.GetMessage);
             tr.IsBackground = true;
