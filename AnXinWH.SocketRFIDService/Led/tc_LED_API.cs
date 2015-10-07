@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -17,7 +19,7 @@ namespace AnXinWH.SocketRFIDService.Led
         /// <param name="BaudRate"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_SetBaudRate(int BaudRate);
+        public static extern short TC_LED_SetBaudRate(int BaudRate);
 
         /// <summary>
         /// //串口连接
@@ -26,14 +28,14 @@ namespace AnXinWH.SocketRFIDService.Led
         /// <param name="sConnectParam"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_Connect(short iConnectType, string sConnectParam);
+        public static extern short TC_LED_Connect(short iConnectType, string sConnectParam);
 
         /// <summary>
         /// //断开串口连接
         /// </summary>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_Disconnect();
+        public static extern short TC_LED_Disconnect();
 
         /// <summary>
         /// //网口卡设置ip
@@ -41,27 +43,27 @@ namespace AnXinWH.SocketRFIDService.Led
         /// <param name="AIP"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_setIP(string AIP);
+        public static extern short TC_LED_setIP(string AIP);
         /// <summary>
         /// //清屏
         /// </summary>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_ClearSP();
+        public static extern short TC_LED_ClearSP();
 
         /// <summary>
         /// //校时
         /// </summary>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_Timing(); 
+        public static extern short TC_LED_Timing();
         /// <summary>
         /// //设置亮度
         /// </summary>
         /// <param name="Value"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_SetLight(int Value);
+        public static extern short TC_LED_SetLight(int Value);
 
         /// <summary>
         /// //定时开关机
@@ -72,14 +74,14 @@ namespace AnXinWH.SocketRFIDService.Led
         /// <param name="DownMinute"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_SetSwitcher(int BootHour, int BootMinute, int DownHour, int DownMinute);
+        public static extern short TC_LED_SetSwitcher(int BootHour, int BootMinute, int DownHour, int DownMinute);
 
         /// <summary>
         /// //取消定时开关机
         /// </summary>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_CancelSwitcher();
+        public static extern short TC_LED_CancelSwitcher();
 
         /// <summary>
         /// //设置屏参
@@ -92,7 +94,7 @@ namespace AnXinWH.SocketRFIDService.Led
         /// <param name="ScanType"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_SetDisplay(int Width, int Height, int ColorType, int DataPolar, int OEPolar, int ScanType);
+        public static extern short TC_LED_SetDisplay(int Width, int Height, int ColorType, int DataPolar, int OEPolar, int ScanType);
 
         /// <summary>
         /// //设置动画方式
@@ -101,7 +103,7 @@ namespace AnXinWH.SocketRFIDService.Led
         /// <param name="iRegionID"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_SetAnimation(int EntryMode, int iRegionID);
+        public static extern short TC_LED_SetAnimation(int EntryMode, int iRegionID);
 
         /// <summary>
         /// //设置边框
@@ -110,7 +112,7 @@ namespace AnXinWH.SocketRFIDService.Led
         /// <param name="iRegionID"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_SetBorder(int BorderType, int iRegionID);
+        public static extern short TC_LED_SetBorder(int BorderType, int iRegionID);
 
         /// <summary>
         /// //设置移动速度
@@ -119,7 +121,7 @@ namespace AnXinWH.SocketRFIDService.Led
         /// <param name="iRegionID"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_SetSpeed(int iStep, int iRegionID);
+        public static extern short TC_LED_SetSpeed(int iStep, int iRegionID);
 
         /// <summary>
         /// //设置停留时间
@@ -128,7 +130,7 @@ namespace AnXinWH.SocketRFIDService.Led
         /// <param name="iRegionID"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_SetKeepTime(int iTime, int iRegionID);
+        public static extern short TC_LED_SetKeepTime(int iTime, int iRegionID);
 
         /// <summary>
         /// //设置语音卡调用字库
@@ -137,7 +139,7 @@ namespace AnXinWH.SocketRFIDService.Led
         /// <param name="iRegionID"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_SetFont(int ifont, int iRegionID);
+        public static extern short TC_LED_SetFont(int ifont, int iRegionID);
 
         /// <summary>
         /// //设置字体颜色
@@ -146,7 +148,7 @@ namespace AnXinWH.SocketRFIDService.Led
         /// <param name="iRegionID"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_SetFontColor(int Color, int iRegionID);
+        public static extern short TC_LED_SetFontColor(int Color, int iRegionID);
 
         /// <summary>
         /// //设置分区
@@ -158,7 +160,7 @@ namespace AnXinWH.SocketRFIDService.Led
         /// <param name="Height"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_SetPartition(int Count, int X, int Y, int Width, int Height);
+        public static extern short TC_LED_SetPartition(int Count, int X, int Y, int Width, int Height);
 
         /// <summary>
         /// //发送普通文本
@@ -166,8 +168,8 @@ namespace AnXinWH.SocketRFIDService.Led
         /// <param name="sDisplayStr"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_SendInfo(string sDisplayStr); 
-       
+        public static extern short TC_LED_SendInfo(string sDisplayStr);
+
         /// <summary>
         /// //发送字幕
         /// </summary>
@@ -183,7 +185,7 @@ namespace AnXinWH.SocketRFIDService.Led
         /// <param name="AAlign"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_SendSubtitles(string AText, int AType, int AColor, int AiW, int AiH, int ArcW, int ArcH, string AFont, int AStyle, int AAlign);
+        public static extern short TC_LED_SendSubtitles(string AText, int AType, int AColor, int AiW, int AiH, int ArcW, int ArcH, string AFont, int AStyle, int AAlign);
 
         /// <summary>
         /// //获取错误信息
@@ -191,7 +193,7 @@ namespace AnXinWH.SocketRFIDService.Led
         /// <param name="sLastError"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_GetLastError(string sLastError);
+        public static extern short TC_LED_GetLastError(string sLastError);
 
         /// <summary>
         /// //设置485设备号
@@ -199,7 +201,142 @@ namespace AnXinWH.SocketRFIDService.Led
         /// <param name="DeviceId"></param>
         /// <returns></returns>
         [DllImport("LedOpt.dll")]
-       public static extern short TC_LED_Set485Id(int DeviceId = 1);
-             
+        public static extern short TC_LED_Set485Id(int DeviceId = 1);
+
+
+        /// <summary>
+        /// //发送普文本信息
+        /// </summary>
+        /// <param name="sendTxT"></param>
+        /// <returns></returns>
+        public bool SendText(string sendTxT, int EntryMode, int BorderType, int iSpeed, int iKeepTime, int iFontColor, int iRegionID)
+        {
+
+            TC_LED_SetAnimation(EntryMode, iRegionID);   //动画
+            TC_LED_SetBorder(BorderType, iRegionID);       //边框
+            TC_LED_SetSpeed(iSpeed, iRegionID);  //速度
+            TC_LED_SetKeepTime(iKeepTime, iRegionID);  //停留时间
+            TC_LED_SetFontColor(iFontColor, iRegionID);    //字体颜色
+
+            short ret = TC_LED_SendInfo(sendTxT);
+            if (ret != 0)
+            {
+                //MessageBox.Show("通讯失败!");
+                return false;
+            }
+            else
+            {
+                //MessageBox.Show("Success!");
+                return true;
+            }
+        }
+        /// <summary>
+        /// //发送字幕
+        /// </summary>
+        /// <param name="sendTxT"></param>
+        /// <param name="EntryMode"></param>
+        /// <param name="BorderType"></param>
+        /// <param name="iSpeed"></param>
+        /// <param name="iKeepTime"></param>
+        /// <param name="iFontColor"></param>
+        /// <param name="iRegionID"></param>
+        /// <returns></returns>
+        public bool SendTextSub(string sendTxT, int PingColorIndex, int FontColorIndex, int aiW, int aiH, int aicW, int aich, int EntryMode, int BorderType, int iSpeed, int iKeepTime, int iFontColor, int iRegionID)
+        {
+
+            TC_LED_SetAnimation(EntryMode, iRegionID);   //动画
+            TC_LED_SetBorder(BorderType, iRegionID);       //边框
+            TC_LED_SetSpeed(iSpeed, iRegionID);  //速度
+            TC_LED_SetKeepTime(iKeepTime, iRegionID);  //停留时间
+            TC_LED_SetFontColor(iFontColor, iRegionID);    //字体颜色
+
+            short ret = TC_LED_SendSubtitles(sendTxT, PingColorIndex, FontColorIndex, aiW, aiH,
+                     aicW, aich, "宋体", 1, 0);
+            if (ret != 0)
+            {
+                //MessageBox.Show("通讯失败!");
+                return false;
+            }
+            else
+            {
+                //MessageBox.Show("Success!");
+                return true;
+            }
+        }
+        /// <summary>
+        /// //清屏
+        /// </summary>
+        /// <returns></returns>
+        public bool CleanScreen()
+        {
+            short ret = TC_LED_ClearSP();
+            if (ret != 0)
+            {
+                //MessageBox.Show("通讯失败!");
+                return false;
+            }
+            else
+            {
+                //MessageBox.Show("Success!");
+                return true;
+            }
+        }
+        /// <summary>
+        /// /校时
+        /// </summary>
+        /// <returns></returns>
+        public bool SetTiming()
+        {
+            short ret = TC_LED_Timing();
+            if (ret != 0)
+            {
+                //MessageBox.Show("通讯失败!");
+                return false;
+            }
+            else
+            {
+                //MessageBox.Show("Success!");
+                return true;
+            }
+        }
+        /// <summary>
+        /// /校时
+        /// </summary>
+        /// <returns></returns>
+        public bool SetIp(string IpStr)
+        {
+            short ret = TC_LED_setIP(IpStr.Trim());
+            if (ret != 0)
+            {
+                //MessageBox.Show("通讯失败!");
+                return false;
+            }
+            else
+            {
+                //MessageBox.Show("Success!");
+                return true;
+            }
+        }
+        public string getIpbyUDP()
+        {
+            UdpClient client = new UdpClient(new IPEndPoint(IPAddress.Any, 0));
+            IPEndPoint endpoint = new IPEndPoint(IPAddress.Parse("255.255.255.255"), 120);
+            byte[] buf = Encoding.Default.GetBytes("EASYNET");
+
+            client.Send(buf, buf.Length, endpoint);
+            byte[] ReceiveBuf = client.Receive(ref endpoint);
+            string msg = Encoding.Default.GetString(ReceiveBuf);
+
+            if (msg != "NETEASY")
+            {
+                //MessageBox.Show("广播失败！");
+                return null;
+            }
+            else
+            {
+                return endpoint.Address.ToString();
+                //MessageBox.Show(endpoint.Address.ToString());
+            }
+        }
     }
 }
