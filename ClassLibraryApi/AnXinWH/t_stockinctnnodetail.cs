@@ -40,6 +40,9 @@ namespace ClassLibraryApi.AnXinWH
 
         public float? gwet { get; set; }
 
+        /// <summary>
+        /// 默认1:可用 0:不可用  2：卸料
+        /// </summary>
         public short status { get; set; }
 
         [StringLength(16)]

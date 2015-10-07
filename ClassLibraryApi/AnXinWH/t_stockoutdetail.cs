@@ -34,6 +34,10 @@ namespace ClassLibraryApi.AnXinWH
         [StringLength(30)]
         public string pc { get; set; }
 
+
+        [StringLength(50)]
+        public string receiptNo { get; set; }
+
         public float? pqty { get; set; }
 
         public float qty { get; set; }
@@ -46,7 +50,7 @@ namespace ClassLibraryApi.AnXinWH
         [StringLength(20)]
         public string quanlity { get; set; }
 
-        public short? status { get; set; }
+        public short status { get; set; }
 
         [Required]
         [StringLength(16)]

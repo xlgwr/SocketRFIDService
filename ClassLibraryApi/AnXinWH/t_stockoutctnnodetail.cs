@@ -36,9 +36,9 @@ namespace ClassLibraryApi.AnXinWH
 
         public float qty { get; set; }
 
-        public float? nwet { get; set; }
+        public float nwet { get; set; }
 
-        public float? gwet { get; set; }
+        public float gwet { get; set; }
 
         public short status { get; set; }
 

@@ -253,24 +253,19 @@ namespace AnXinWH.SocketRFIDService
                 {
                     case "0":
                         //0：入库
-
+                        //查实际入库明细(2),有-->更新为(1);
                         using (var db = new MysqlDbContext())
                         {
-                            var tmpcont = db.t_stockinctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).Count();
+                            var tmpcont = db.t_stockinctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 2).Count();
 
                             if (tmpcont > 0)
                             {
-                                var tmpModelin = db.t_stockinctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).First();
+                                var tmpModelin = db.t_stockinctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 2).First();
+
                                 logger.DebugFormat("#开始入库**********#########共有{0}条记录.入库单号:{1},货物编号：{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpModelin.stockin_id, tmpModelin.prdct_no, tmpModelin.ctnno_no, tmpStrRFID);
+                                logger.Debug("*********(2--->1)[status 1:可用 0:不可用 2：卸料]**********");
 
-                                var tmpStatuscont = db.t_stockinctnnodetail.Where(m => m.status == 0).Count();
-                                if (tmpStatuscont <= 0)
-                                {
-                                    logger.DebugFormat("#入库**********#########t_stockinctnnodetail: 早已经更新入库标记，共有{0}条，无需更新.入库单号:{1},货物编号：{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpModelin.stockin_id, tmpModelin.prdct_no, tmpModelin.ctnno_no, tmpStrRFID);
-                                    return true;
-                                }
-
-                                string tmpUpdateSQL = "update t_stockinctnnodetail set STATUS='1' WHERE rfid_no=@rfid_no";
+                                string tmpUpdateSQL = "update t_stockinctnnodetail set STATUS='1' WHERE STATUS='2' and rfid_no=@rfid_no";
                                 var tmpRetunCount = db.Database.ExecuteSqlCommand(tmpUpdateSQL, new MySqlParameter("@rfid_no", tmpStrRFID.Trim()));
 
                                 if (tmpRetunCount > 0)
@@ -279,8 +274,11 @@ namespace AnXinWH.SocketRFIDService
 
                                     return true;
                                 }
+
+                                logger.DebugFormat("*error开始入库*失败，系统错误,请联系管理员**************************************************************", tmpStrRFID);
+                                return false;
                             }
-                            logger.DebugFormat("*开始入库*失败，未查到对应RFID:{0}", tmpStrRFID);
+                            logger.DebugFormat("*开始入库*失败，未查到可入库记录,对应RFID:{0}**************************************************************", tmpStrRFID);
                             return false;
                         }
                         break;
@@ -289,31 +287,77 @@ namespace AnXinWH.SocketRFIDService
                         //1：出库
                         using (var db = new MysqlDbContext())
                         {
-                            var tmpcont = db.t_stockoutctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).Count();
+                            //库存明细表
+                            //1:在库可用,0:不可用(出库更新库存时更新(1-->0)
+
+                            //查库存明细表(1),得:仓单号.
+                            //(有-->查申.货物出库明细(仓单号)
+                            //      [有-->更新库存表,库存明细表(0),无-->报警]),
+                            //无-->报警)                            
+                            var tmpcont = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 1).Count();
                             if (tmpcont > 0)
-                            {
-                                var tmpModelOut = db.t_stockoutctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).First();
-                                logger.DebugFormat("*开始出库**********#########共有{0}条记录.出库单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpModelOut.stockout_id, tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
+                            {//查库存明细表
+                                var tmpModelOut = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 1).First();
 
-                                var tmpStatuscont = db.t_stockinctnnodetail.Where(m => m.status == 0).Count();
-                                if (tmpStatuscont <= 0)
+                                if (string.IsNullOrEmpty(tmpModelOut.receiptNo))
                                 {
-                                    logger.DebugFormat("*#出库**********#########t_stockoutctnnodetail: 早已经更新出库标记，共有{0}条，无需更新.出库单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpModelOut.stockout_id, tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
+                                    logger.DebugFormat("*开始出库**********#########没有仓单号,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
+                                    //***********报警*********
+                                    return false;
+                                }
+                                logger.DebugFormat("*开始出库**********#########共有{0}条记录.仓单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpModelOut.receiptNo, tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
 
-                                    return true;
+                                //货物出库明细
+
+                                //var tmpStockDetails = db.t_stockoutdetail.Where(m => m.receiptNo.Equals(tmpModelOut.receiptNo) && m.prdct_no.Equals(tmpModelOut.prdct_no) && m.status == 1).FirstOrDefault();
+
+                                //if (tmpStockDetails == null)
+                                //{
+                                //    logger.DebugFormat("*error开始出库**********{0}#########没有查到[有效的]货物出库明细记录.仓单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpModelOut.receiptNo, tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
+
+                                //    return false;
+                                //}
+
+                                //更新库存
+                                var tmpstock = db.t_stock.Where(m => m.prdct_no.Equals(tmpModelOut.prdct_no)).FirstOrDefault();
+
+                                if (tmpstock != null)
+                                {
+                                    logger.DebugFormat("*开始出库**********#########更新库存前:箱数:{0},数量:{1},重量:{2},净重:{3}", tmpstock.pqty, tmpstock.qty, tmpstock.gwet, tmpstock.nwet);
+
+                                    tmpstock.pqty -= tmpModelOut.pqty;
+                                    tmpstock.qty -= tmpModelOut.qty;
+                                    tmpstock.gwet -= tmpModelOut.gwet;
+                                    tmpstock.nwet -= tmpModelOut.nwet;
+
+                                    var tmpflagsave = db.SaveChanges();
+                                    logger.DebugFormat("*开始出库*********#########Save flag:{0}.", tmpflagsave);
+                                    logger.DebugFormat("*开始出库**********#########更新库存成功,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
+                                    logger.DebugFormat("*开始出库**********#########更新库存后:箱数:{0},数量:{1},重量:{2},净重:{3}", tmpstock.pqty, tmpstock.qty, tmpstock.gwet, tmpstock.nwet);
+
+                                }
+                                else
+                                {
+                                    logger.DebugFormat("*error开始出库**********#########没有库存,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
+
+                                    return false;
                                 }
 
-                                string tmpUpdateSQL = "update t_stockoutctnnodetail set STATUS='1' WHERE rfid_no=@rfid_no";
+                                //更新明细状态
+                                string tmpUpdateSQL = "update t_stockdetail set STATUS='0' WHERE STATUS='1' and rfid_no=@rfid_no";
                                 var tmpRetunCount = db.Database.ExecuteSqlCommand(tmpUpdateSQL, new MySqlParameter("@rfid_no", tmpStrRFID.Trim()));
 
                                 if (tmpRetunCount > 0)
                                 {
-                                    logger.DebugFormat("*出库**********#########t_stockoutctnnodetail: 更新成功出库标记，共有{0}条已更新.出库单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpRetunCount, tmpModelOut.stockout_id, tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
+                                    logger.DebugFormat("*success出库明细**********#########t_stockdetail: 更新成功明细出库标记，共有{0}条已更新.仓单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpRetunCount, tmpModelOut.receiptNo, tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
                                     return true;
                                 }
+
+                                logger.DebugFormat("*error开始出库*失败，系统错误,请联系管理员**************************************************************", tmpStrRFID);
+                                return false;
                             }
 
-                            logger.DebugFormat("*开始出库*失败，未查到对应RFID:{0}", tmpStrRFID);
+                            logger.DebugFormat("*error开始出库*失败，未查到对应RFID:{0}**************************************************************", tmpStrRFID);
                             return false;
                         }
                         break;
