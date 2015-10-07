@@ -258,17 +258,15 @@ namespace AnXinWH.SocketRFIDService
                         {
                             var tmpcont = db.t_stockinctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).Count();
 
-                            logger.DebugFormat("*入库********************t_stockinctnnodetail: {0} 条记录.rfid_no:{1}", tmpcont, tmpStrRFID);
-
                             if (tmpcont > 0)
                             {
                                 var tmpModelin = db.t_stockinctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).First();
-                                logger.DebugFormat("#入库**********#########共有{0}条记录.入库单号:{1},货物编号：{2},rfid_no:{3}", tmpcont, tmpModelin.stockin_id, tmpModelin.prdct_no, tmpStrRFID);
+                                logger.DebugFormat("#入库**********#########共有{0}条记录.入库单号:{1},货物编号：{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpModelin.stockin_id, tmpModelin.prdct_no, tmpModelin.ctnno_no, tmpStrRFID);
 
                                 var tmpStatuscont = db.t_stockinctnnodetail.Where(m => m.status == 0).Count();
                                 if (tmpStatuscont <= 0)
                                 {
-                                    logger.DebugFormat("#入库**********#########t_stockinctnnodetail: 早已经更新入库标记，共有{0}条已更新.入库单号:{1},货物编号：{2},rfid_no:{3}", tmpcont, tmpModelin.stockin_id, tmpModelin.prdct_no, tmpStrRFID);
+                                    logger.DebugFormat("#入库**********#########t_stockinctnnodetail: 早已经更新入库标记，共有{0}条，无需更新.入库单号:{1},货物编号：{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpModelin.stockin_id, tmpModelin.prdct_no, tmpModelin.ctnno_no, tmpStrRFID);
                                     return true;
                                 }
 
@@ -277,7 +275,7 @@ namespace AnXinWH.SocketRFIDService
 
                                 if (tmpRetunCount > 0)
                                 {
-                                    logger.DebugFormat("#入库**********#########t_stockinctnnodetail: 更新成功入库标记，共有{0}条已更新.入库单号:{1},货物编号：{2},rfid_no:{3}", tmpRetunCount, tmpModelin.stockin_id, tmpModelin.prdct_no, tmpStrRFID);
+                                    logger.DebugFormat("*#入库**********#########t_stockinctnnodetail: 更新成功入库标记，共有{0}条已更新.入库单号:{1},货物编号：{2},托盘号:{3}，rfid_no:{4}", tmpRetunCount, tmpModelin.stockin_id, tmpModelin.prdct_no, tmpModelin.ctnno_no, tmpStrRFID);
 
                                     return true;
                                 }
@@ -292,18 +290,15 @@ namespace AnXinWH.SocketRFIDService
                         using (var db = new MysqlDbContext())
                         {
                             var tmpcont = db.t_stockoutctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).Count();
-
-                            logger.DebugFormat("*出库********************t_stockoutctnnodetail: {0} 条记录.rfid_no:{1}", tmpcont, tmpStrRFID);
-
                             if (tmpcont > 0)
                             {
                                 var tmpModelOut = db.t_stockoutctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).First();
-                                logger.DebugFormat("*出库**********#########共有{0}条记录.出库单号:{1},货物编号:{2},rfid_no:{3}", tmpcont, tmpModelOut.stockout_id, tmpModelOut.prdct_no, tmpStrRFID);
+                                logger.DebugFormat("*出库**********#########共有{0}条记录.出库单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpModelOut.stockout_id, tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
 
                                 var tmpStatuscont = db.t_stockinctnnodetail.Where(m => m.status == 0).Count();
                                 if (tmpStatuscont <= 0)
                                 {
-                                    logger.DebugFormat("#出库**********#########t_stockoutctnnodetail: 早已经更新出库标记，共有{0}条已更新.出库单号:{1},货物编号:{2},rfid_no:{3}", tmpcont, tmpModelOut.stockout_id, tmpModelOut.prdct_no, tmpStrRFID);
+                                    logger.DebugFormat("*#出库**********#########t_stockoutctnnodetail: 早已经更新出库标记，共有{0}条，无需更新.出库单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpModelOut.stockout_id, tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
 
                                     return true;
                                 }
@@ -313,7 +308,7 @@ namespace AnXinWH.SocketRFIDService
 
                                 if (tmpRetunCount > 0)
                                 {
-                                    logger.DebugFormat("*出库**********#########t_stockoutctnnodetail: 更新成功出库标记，共有{0}条已更新.出库单号:{1},货物编号:{2},rfid_no:{3}", tmpRetunCount, tmpModelOut.stockout_id, tmpModelOut.prdct_no, tmpStrRFID);
+                                    logger.DebugFormat("*出库**********#########t_stockoutctnnodetail: 更新成功出库标记，共有{0}条已更新.出库单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpRetunCount, tmpModelOut.stockout_id, tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
                                     return true;
                                 }
                             }
