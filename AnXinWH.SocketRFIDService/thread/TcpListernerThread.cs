@@ -276,13 +276,8 @@ namespace AnXinWH.SocketRFIDService
                                 {
                                     return true;
                                 }
-                                return false;
                             }
-                            else
-                            {
-                                return false;
-                            }
-
+                            return false;
                         }
                         break;
 
@@ -296,27 +291,22 @@ namespace AnXinWH.SocketRFIDService
 
                             if (tmpcont > 0)
                             {
-                                var tmpStatuscont = db.t_stockinctnnodetail.Where(m => m.status == 1).Count();
+                                var tmpStatuscont = db.t_stockinctnnodetail.Where(m => m.status == 0).Count();
                                 if (tmpStatuscont <= 0)
                                 {
                                     logger.DebugFormat("#出库**********#########t_stockoutctnnodetail: 已经更新出库标记，共有{0}条已更新.rfid_no:{1}", tmpcont, tmpStrRFID);
                                     return true;
                                 }
 
-                                string tmpUpdateSQL = "update t_stockoutctnnodetail set STATUS='0' WHERE rfid_no=@rfid_no";
+                                string tmpUpdateSQL = "update t_stockoutctnnodetail set STATUS='1' WHERE rfid_no=@rfid_no";
                                 var tmpRetunCount = db.Database.ExecuteSqlCommand(tmpUpdateSQL, new MySqlParameter("@rfid_no", tmpStrRFID.Trim()));
 
                                 if (tmpRetunCount > 0)
                                 {
                                     return true;
                                 }
-                                return false;
                             }
-                            else
-                            {
-                                return false;
-                            }
-
+                            return false;
                         }
                         break;
 
@@ -375,7 +365,7 @@ namespace AnXinWH.SocketRFIDService
                     handler.Send(state.buffer, 0, bytesReadLength, SocketFlags.None);
 
                     //todo test
-                    changeInOrOutStock(Program._sysType, new string(toChar));
+                    var tmpResule = changeInOrOutStock(Program._sysType, new string(toChar));
 
                     //close current workSocket
 

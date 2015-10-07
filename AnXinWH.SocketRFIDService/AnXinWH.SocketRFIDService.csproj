@@ -111,6 +111,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="job\AutoGetJob.cs" />
+    <Compile Include="Led\tc_LED_API.cs" />
     <Compile Include="thread\TcpListernerThread.cs" />
     <Compile Include="Model\Class1.cs" />
     <Compile Include="Service1.cs">
