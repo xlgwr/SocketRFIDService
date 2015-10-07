@@ -261,7 +261,7 @@ namespace AnXinWH.SocketRFIDService
                             if (tmpcont > 0)
                             {
                                 var tmpModelin = db.t_stockinctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).First();
-                                logger.DebugFormat("#入库**********#########共有{0}条记录.入库单号:{1},货物编号：{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpModelin.stockin_id, tmpModelin.prdct_no, tmpModelin.ctnno_no, tmpStrRFID);
+                                logger.DebugFormat("#开始入库**********#########共有{0}条记录.入库单号:{1},货物编号：{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpModelin.stockin_id, tmpModelin.prdct_no, tmpModelin.ctnno_no, tmpStrRFID);
 
                                 var tmpStatuscont = db.t_stockinctnnodetail.Where(m => m.status == 0).Count();
                                 if (tmpStatuscont <= 0)
@@ -280,7 +280,7 @@ namespace AnXinWH.SocketRFIDService
                                     return true;
                                 }
                             }
-                            logger.DebugFormat("*入库*失败，未查到对应RFID:{0}", tmpStrRFID);
+                            logger.DebugFormat("*开始入库*失败，未查到对应RFID:{0}", tmpStrRFID);
                             return false;
                         }
                         break;
@@ -293,7 +293,7 @@ namespace AnXinWH.SocketRFIDService
                             if (tmpcont > 0)
                             {
                                 var tmpModelOut = db.t_stockoutctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).First();
-                                logger.DebugFormat("*出库**********#########共有{0}条记录.出库单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpModelOut.stockout_id, tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
+                                logger.DebugFormat("*开始出库**********#########共有{0}条记录.出库单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpModelOut.stockout_id, tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
 
                                 var tmpStatuscont = db.t_stockinctnnodetail.Where(m => m.status == 0).Count();
                                 if (tmpStatuscont <= 0)
@@ -313,7 +313,7 @@ namespace AnXinWH.SocketRFIDService
                                 }
                             }
 
-                            logger.DebugFormat("*出库*失败，未查到对应RFID:{0}", tmpStrRFID);
+                            logger.DebugFormat("*开始出库*失败，未查到对应RFID:{0}", tmpStrRFID);
                             return false;
                         }
                         break;
@@ -377,7 +377,7 @@ namespace AnXinWH.SocketRFIDService
 
                     //close current workSocket
 
-                    logger.DebugFormat("**##客户socket读取数据结束,Close current Connect IP:{0}", tw_strIP);
+                    logger.DebugFormat("**##客户socket读取数据结束,Close current Connect IP:{0}*************************************************************", tw_strIP);
 
                     handler.Close();
 
