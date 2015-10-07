@@ -278,7 +278,7 @@ namespace AnXinWH.SocketRFIDService
                                 logger.DebugFormat("*error开始入库*失败，系统错误,请联系管理员**************************************************************", tmpStrRFID);
                                 return false;
                             }
-                            logger.DebugFormat("*开始入库*失败，未查到可入库记录,对应RFID:{0}**************************************************************", tmpStrRFID);
+                            logger.DebugFormat("*开始入库*失败，未查到[可入库/有效的]实际入库明细记录,RFID:{0}**************************************************************", tmpStrRFID);
                             return false;
                         }
                         break;
@@ -296,7 +296,8 @@ namespace AnXinWH.SocketRFIDService
                             //无-->报警)                            
                             var tmpcont = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 1).Count();
                             if (tmpcont > 0)
-                            {//查库存明细表
+                            {
+                                //查库存明细表
                                 var tmpModelOut = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 1).First();
 
                                 if (string.IsNullOrEmpty(tmpModelOut.receiptNo))
@@ -357,7 +358,7 @@ namespace AnXinWH.SocketRFIDService
                                 return false;
                             }
 
-                            logger.DebugFormat("*error开始出库*失败，未查到对应RFID:{0}**************************************************************", tmpStrRFID);
+                            logger.DebugFormat("*error开始出库*失败，未查到[可出库/有效的]库存明细表记录,RFID:{0}**************************************************************", tmpStrRFID);
                             return false;
                         }
                         break;
