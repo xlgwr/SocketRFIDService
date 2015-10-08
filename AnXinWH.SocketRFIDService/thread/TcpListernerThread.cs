@@ -15,6 +15,7 @@ using log4net;
 
 using MysqlDbContext = ClassLibraryApi.AnXinWH.AnXinWH;
 using MySql.Data.MySqlClient;
+using ClassLibraryApi.AnXinWH;
 
 namespace AnXinWH.SocketRFIDService
 {
@@ -297,65 +298,118 @@ namespace AnXinWH.SocketRFIDService
                             var tmpcont = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 1).Count();
                             if (tmpcont > 0)
                             {
-                                //查库存明细表
-                                var tmpModelOut = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 1).First();
 
-                                if (string.IsNullOrEmpty(tmpModelOut.receiptNo))
+                                #region 查库存明细表
+                                //查库存明细表
+                                var tmpstockdetailForOut = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 1).First();
+
+                                if (string.IsNullOrEmpty(tmpstockdetailForOut.receiptNo))
                                 {
-                                    logger.DebugFormat("*开始出库**********#########没有仓单号,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
+                                    logger.DebugFormat("*开始出库**********#########没有仓单号,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
                                     //***********报警*********
                                     return false;
                                 }
-                                logger.DebugFormat("*开始出库**********#########共有{0}条记录.仓单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpModelOut.receiptNo, tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
+                                logger.DebugFormat("*开始出库**********#########共有{0}条记录.仓单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpstockdetailForOut.receiptNo, tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
 
+                                #endregion
+                                #region 货物出库明细
                                 //货物出库明细
+                                var tmpStockoutDetails = db.t_stockoutdetail.Where(m => m.receiptNo.Equals(tmpstockdetailForOut.receiptNo) && m.prdct_no.Equals(tmpstockdetailForOut.prdct_no) && m.status == 1).FirstOrDefault();
 
-                                //var tmpStockDetails = db.t_stockoutdetail.Where(m => m.receiptNo.Equals(tmpModelOut.receiptNo) && m.prdct_no.Equals(tmpModelOut.prdct_no) && m.status == 1).FirstOrDefault();
+                                if (tmpStockoutDetails == null)
+                                {
+                                    logger.DebugFormat("*error开始出库**********{0}#########没有查到[有效的]货物出库明细记录.仓单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpstockdetailForOut.receiptNo, tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
 
-                                //if (tmpStockDetails == null)
-                                //{
-                                //    logger.DebugFormat("*error开始出库**********{0}#########没有查到[有效的]货物出库明细记录.仓单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpModelOut.receiptNo, tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
+                                    return false;
+                                }
+                                #endregion
+                                #region 插入明细记录.
+                                //插入明细记录.
+                                var tmpExitStockDetails = db.t_stockoutctnnodetail.Find(new object[]{
+                                    tmpStockoutDetails.stockout_id,
+                                    tmpstockdetailForOut.prdct_no,
+                                    tmpstockdetailForOut.rfid_no,
+                                    tmpstockdetailForOut.ctnno_no
+                                });
+                                if (tmpExitStockDetails == null)
+                                {
+                                    var tmpNewStockDetails = new t_stockoutctnnodetail();
+                                    tmpNewStockDetails.stockout_id = tmpStockoutDetails.stockout_id;
 
-                                //    return false;
-                                //}
+                                    tmpNewStockDetails.prdct_no = tmpstockdetailForOut.prdct_no;
+                                    tmpNewStockDetails.rfid_no = tmpstockdetailForOut.rfid_no;
+                                    tmpNewStockDetails.ctnno_no = tmpstockdetailForOut.ctnno_no;
+                                    tmpNewStockDetails.receiptNo = tmpstockdetailForOut.receiptNo;
+                                    tmpNewStockDetails.pqty = tmpstockdetailForOut.pqty;
+                                    tmpNewStockDetails.qty = tmpstockdetailForOut.qty;
+                                    tmpNewStockDetails.nwet = tmpstockdetailForOut.nwet;
+                                    tmpNewStockDetails.gwet = tmpstockdetailForOut.gwet;
+                                    tmpNewStockDetails.adduser = "rfid";
+                                    tmpNewStockDetails.updtime = DateTime.Now;
+                                    tmpNewStockDetails.upduser = "rfid";
+                                    tmpNewStockDetails.addtime = DateTime.Now;
+                                    tmpNewStockDetails.status = 1;
 
+                                    db.t_stockoutctnnodetail.Add(tmpNewStockDetails);
+
+                                    db.SaveChanges();
+                                }
+
+
+                                #endregion
+                                #region 更新库存
                                 //更新库存
-                                var tmpstock = db.t_stock.Where(m => m.prdct_no.Equals(tmpModelOut.prdct_no)).FirstOrDefault();
+                                var tmpstock = db.t_stock.Where(m => m.prdct_no.Equals(tmpstockdetailForOut.prdct_no)).FirstOrDefault();
 
                                 if (tmpstock != null)
                                 {
                                     logger.DebugFormat("*开始出库**********#########更新库存前:箱数:{0},数量:{1},重量:{2},净重:{3}", tmpstock.pqty, tmpstock.qty, tmpstock.gwet, tmpstock.nwet);
 
-                                    tmpstock.pqty -= tmpModelOut.pqty;
-                                    tmpstock.qty -= tmpModelOut.qty;
-                                    tmpstock.gwet -= tmpModelOut.gwet;
-                                    tmpstock.nwet -= tmpModelOut.nwet;
+                                    tmpstock.pqty -= tmpstockdetailForOut.pqty;
+                                    tmpstock.qty -= tmpstockdetailForOut.qty;
+                                    tmpstock.gwet -= tmpstockdetailForOut.gwet;
+                                    tmpstock.nwet -= tmpstockdetailForOut.nwet;
 
                                     var tmpflagsave = db.SaveChanges();
-                                    logger.DebugFormat("*开始出库*********#########Save flag:{0}.", tmpflagsave);
-                                    logger.DebugFormat("*开始出库**********#########更新库存成功,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
-                                    logger.DebugFormat("*开始出库**********#########更新库存后:箱数:{0},数量:{1},重量:{2},净重:{3}", tmpstock.pqty, tmpstock.qty, tmpstock.gwet, tmpstock.nwet);
 
+                                    if (tmpflagsave > 0)
+                                    {
+                                        logger.DebugFormat("*开始出库*********#########Save flag:{0}.", tmpflagsave);
+                                        logger.DebugFormat("*开始出库**********#########更新库存成功,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
+                                        logger.DebugFormat("*开始出库**********#########更新库存后:箱数:{0},数量:{1},重量:{2},净重:{3}", tmpstock.pqty, tmpstock.qty, tmpstock.gwet, tmpstock.nwet);
+
+                                    }
+                                    else
+                                    {
+                                        logger.DebugFormat("*error开始出库**********#########更新库存失败,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
+
+                                        return false;
+                                    }
                                 }
                                 else
                                 {
-                                    logger.DebugFormat("*error开始出库**********#########没有库存,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
+                                    logger.DebugFormat("*error开始出库**********#########没有库存,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
 
                                     return false;
                                 }
 
-                                //更新明细状态
+                                #endregion
+
+                                #region 更新明细状态
+                                //更新明细状态 
                                 string tmpUpdateSQL = "update t_stockdetail set STATUS='0' WHERE STATUS='1' and rfid_no=@rfid_no";
                                 var tmpRetunCount = db.Database.ExecuteSqlCommand(tmpUpdateSQL, new MySqlParameter("@rfid_no", tmpStrRFID.Trim()));
 
                                 if (tmpRetunCount > 0)
                                 {
-                                    logger.DebugFormat("*success出库明细**********#########t_stockdetail: 更新成功明细出库标记，共有{0}条已更新.仓单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpRetunCount, tmpModelOut.receiptNo, tmpModelOut.prdct_no, tmpModelOut.ctnno_no, tmpStrRFID);
+                                    logger.DebugFormat("*success出库明细**********#########t_stockdetail: 更新成功明细出库标记，共有{0}条已更新.仓单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpRetunCount, tmpstockdetailForOut.receiptNo, tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
                                     return true;
                                 }
 
                                 logger.DebugFormat("*error开始出库*失败，系统错误,请联系管理员**************************************************************", tmpStrRFID);
                                 return false;
+
+                                #endregion
                             }
 
                             logger.DebugFormat("*error开始出库*失败，未查到[可出库/有效的]库存明细表记录,RFID:{0}**************************************************************", tmpStrRFID);
@@ -408,7 +462,7 @@ namespace AnXinWH.SocketRFIDService
                     var toChar = tmpBuffer.ToList().Select(m => (Char)m).ToArray();
 
 
-                    logger.DebugFormat("#read {0} client {1} bytes, String: {2},Buffer16:{3}.", tw_strIP, bytesReadLength, new string(toChar), String.Join(",", to16));
+                    logger.DebugFormat("*******************_______*********************#read {0} client {1} bytes, String: {2},Buffer16:{3}.", tw_strIP, bytesReadLength, new string(toChar), String.Join(",", to16));
                     logger.InfoFormat("#read {0} client {1} bytes,String: {2}, Buffer16:{3}.", tw_strIP, bytesReadLength, new string(toChar), String.Join(",", to16));
 
 

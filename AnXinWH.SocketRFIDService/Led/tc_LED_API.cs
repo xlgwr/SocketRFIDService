@@ -317,26 +317,38 @@ namespace AnXinWH.SocketRFIDService.Led
                 return true;
             }
         }
+        /// <summary>
+        /// 直
+        /// </summary>
+        /// <returns></returns>
         public string getIpbyUDP()
         {
-            UdpClient client = new UdpClient(new IPEndPoint(IPAddress.Any, 0));
-            IPEndPoint endpoint = new IPEndPoint(IPAddress.Parse("255.255.255.255"), 120);
-            byte[] buf = Encoding.Default.GetBytes("EASYNET");
-
-            client.Send(buf, buf.Length, endpoint);
-            byte[] ReceiveBuf = client.Receive(ref endpoint);
-            string msg = Encoding.Default.GetString(ReceiveBuf);
-
-            if (msg != "NETEASY")
+            try
             {
-                //MessageBox.Show("广播失败！");
-                return null;
+                UdpClient client = new UdpClient(new IPEndPoint(IPAddress.Any, 0));
+                IPEndPoint endpoint = new IPEndPoint(IPAddress.Parse("255.255.255.255"), 120);
+                byte[] buf = Encoding.Default.GetBytes("EASYNET");
+
+                client.Send(buf, buf.Length, endpoint);
+                byte[] ReceiveBuf = client.Receive(ref endpoint);
+                string msg = Encoding.Default.GetString(ReceiveBuf);
+
+                if (msg != "NETEASY")
+                {
+                    //MessageBox.Show("广播失败！");
+                    return null;
+                }
+                else
+                {
+                    return endpoint.Address.ToString();
+                    //MessageBox.Show(endpoint.Address.ToString());
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return endpoint.Address.ToString();
-                //MessageBox.Show(endpoint.Address.ToString());
+                return ex.Message;
             }
+
         }
     }
 }
