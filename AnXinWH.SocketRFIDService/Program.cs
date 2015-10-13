@@ -22,29 +22,31 @@ namespace AnXinWH.SocketRFIDService
         /// </summary>
         public static string _sysType { get; private set; }
         public static string _sysCompareMin { get; private set; }
+        public static string _locPort { get; private set; }
+        public static string _rmtHost { get; private set; }
+        public static string _rmtPort { get; private set; }
+        public static string _dstAddr { get; private set; }
 
-        public static void setSysConfig()
+        public static string setValue(string strname, string value)
         {
             try
             {
-                _sysType = System.Configuration.ConfigurationManager.AppSettings["sysType"].ToString();
+                return System.Configuration.ConfigurationManager.AppSettings[strname].ToString();
             }
             catch (Exception ex)
             {
-                _sysType = "0";
                 logger.Error(ex);
+                return value;
             }
-
-            //sysCompareMin
-            try
-            {
-                _sysCompareMin = System.Configuration.ConfigurationManager.AppSettings["sysCompareMin"].ToString();
-            }
-            catch (Exception ex)
-            {
-                _sysCompareMin = "5";
-                logger.Error(ex);
-            }
+        }
+        public static void setSysConfig()
+        {
+            _sysType = setValue("sysType", "0");
+            _sysCompareMin = setValue("sysCompareMin", "5");
+            _locPort = setValue("locPort", "8881");
+            _rmtHost = setValue("rmtHost", "192.168.1.199");
+            _rmtPort = setValue("rmtPort", "6666");
+            _dstAddr = setValue("dstAddr", "0");
         }
 
 #if Dev
@@ -52,7 +54,7 @@ namespace AnXinWH.SocketRFIDService
         {
             try
             {
-                setSysType();
+                setSysConfig();
 
                 Test test = new Test();
                 test.OnStart();

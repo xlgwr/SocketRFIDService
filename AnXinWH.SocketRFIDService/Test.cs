@@ -130,19 +130,28 @@ namespace AnXinWH.SocketRFIDService
 
         public void Working()
         {
-            TcpListernerThread tmptcp = new TcpListernerThread();
+            try
+            {
+                TcpListernerThread tmptcp = new TcpListernerThread();
 
-            TcpListernerThread.mIP = ConfigurationManager.AppSettings["ServerIP"];
-            TcpListernerThread.mPort = ConfigurationManager.AppSettings["ServerPort"];
+                TcpListernerThread.mIP = ConfigurationManager.AppSettings["ServerIP"];
+                TcpListernerThread.mPort = ConfigurationManager.AppSettings["ServerPort"];
 
-            var tmpType = Program._sysType.Equals("0") ? "入库" : "出库";
-            AllMsg("******************" + tmpType + "************************");
-            AllMsg("TcpListener 监听服务成功启动.*  * IP:" + TcpListernerThread.mIP + ", Port:" + TcpListernerThread.mPort);
-            AllMsg("******************" + tmpType + "************************");
+                var tmpType = Program._sysType.Equals("0") ? "入库" : "出库";
+                AllMsg("******************" + tmpType + "************************");
+                AllMsg("TcpListener 监听服务成功启动.*  * IP:" + TcpListernerThread.mIP + ", Port:" + TcpListernerThread.mPort);
+                AllMsg("******************" + tmpType + "************************");
 
-            Thread tr = new Thread(tmptcp.GetMessage);
-            tr.IsBackground = true;
-            tr.Start();
+                Thread tr = new Thread(tmptcp.GetMessage);
+                tr.IsBackground = true;
+                tr.Start();
+
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+            }
+
 
         }
 

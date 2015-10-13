@@ -16,6 +16,7 @@ using log4net;
 using MysqlDbContext = ClassLibraryApi.AnXinWH.AnXinWH;
 using MySql.Data.MySqlClient;
 using ClassLibraryApi.AnXinWH;
+using AnXinWH.SocketRFIDService.Led;
 
 namespace AnXinWH.SocketRFIDService
 {
@@ -504,6 +505,8 @@ namespace AnXinWH.SocketRFIDService
 
                         var tmpItemRFID = String.Join("", toChar);
 
+                        sendTxtToLED(tmpItemRFID);
+
                         if (_tmpListScanRFID.Keys.Contains(tmpItemRFID))
                         {
 
@@ -534,7 +537,7 @@ namespace AnXinWH.SocketRFIDService
                         }
                         logger.DebugFormat("#read {0} Move Flag.", tmpMoveFlag);
 
-                        
+
                         //处理数据
                         //test to send back    
                         //handler.Send(state.buffer, 0, bytesReadLength, SocketFlags.None);
@@ -549,6 +552,7 @@ namespace AnXinWH.SocketRFIDService
                     //close current workSocket
 
                     logger.DebugFormat("**##客户socket读取数据结束,Close current Connect IP:{0}*************************************************************", tw_strIP);
+                    logger.Debug("**************************************(^_^)分割线(^_^)*************************************************************");
 
                     handler.Close();
 
@@ -594,9 +598,70 @@ namespace AnXinWH.SocketRFIDService
             }
 
         }
+        #region LED
+        private const int WM_LED_NOTIFY = 1025;
+        CLEDSender LEDSender = new CLEDSender();
+        public void sendTxtToLED(string tmpTxt)
+        {
+            try
+            {
+                TSenderParam param = new TSenderParam();
+                ushort K;
+
+                GetDeviceParam(ref param.devParam);
+                param.notifyMode = LEDSender.NOTIFY_EVENT;
+                // param.wmHandle = (UInt32)Handle;
+                param.wmMessage = WM_LED_NOTIFY;
+
+                K = (ushort)LEDSender.Do_MakeRoot(LEDSender.ROOT_PLAY, LEDSender.COLOR_MODE_DOUBLE, LEDSender.SURVIVE_ALWAYS);
+                LEDSender.Do_AddChapter(K, 30000, LEDSender.WAIT_CHILD);
+                LEDSender.Do_AddRegion(K, 0, 0, 128, 32, 0);
+
+                //第1页面
+                LEDSender.Do_AddLeaf(K, 1000, LEDSender.WAIT_CHILD);
+                //16点阵字体"01234567890123456789"
+                LEDSender.Do_AddString(K, 0, 0, 512, 16, LEDSender.V_TRUE, 0,
+                    tmpTxt,
+                    LEDSender.FONT_SET_16, 0xff, 1, 1, 2, 1, 0, 1, 1000);
+
+                //send
+                Parse(LEDSender.Do_LED_SendToScreen(ref param, K));
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+            }
+
+        }
+        private void Parse(Int32 K)
+        {
+            if (K == LEDSender.R_DEVICE_READY) logger.InfoFormat("正在执行命令或者发送数据...");
+            else if (K == LEDSender.R_DEVICE_INVALID) logger.InfoFormat("打开通讯设备失败(串口不存在、或者串口已被占用、或者网络端口被占用)");
+            else if (K == LEDSender.R_DEVICE_BUSY) logger.InfoFormat("设备忙，正在通讯中...");
+        }
+        private void GetDeviceParam(ref TDeviceParam param)
+        {
+
+            //param.devType = LEDSender.DEVICE_TYPE_UDP;
+
+            //param.comPort = (ushort)Convert.ToInt16(0);
+            //param.comSpeed = (ushort)38400;
+            //param.locPort = (ushort)Convert.ToInt16(Program._locPort);
+            //param.rmtHost = Program._rmtHost; ;
+            //param.rmtPort = (ushort)Convert.ToInt16(Program._rmtPort);
+            //param.dstAddr = (ushort)Convert.ToInt16(Program._dstAddr); 
 
 
+            param.devType = LEDSender.DEVICE_TYPE_UDP;
 
+            param.comPort = (ushort)Convert.ToInt16(1);
+            param.comSpeed = (ushort)19200;
+            param.locPort = (ushort)Convert.ToInt16(8881);
+            param.rmtHost = "192.168.1.199";
+            param.rmtPort = 6666;
+            param.dstAddr = 0;
+        }
+        #endregion
         private void ProcessDate(Object obj)
         {
             try
