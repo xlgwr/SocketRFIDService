@@ -70,6 +70,11 @@ namespace AnXinWH.SocketRFIDService
         public static bool s_bolWork = false;
 
         #endregion
+
+        /// <summary>
+        /// N 分钟内扫描无效
+        /// </summary>
+        public static Dictionary<string, bool> _tmpListScanRFID = new Dictionary<string, bool>();
         public TcpListernerThread()
         {
             logger = LogManager.GetLogger(GetType());
@@ -90,6 +95,8 @@ namespace AnXinWH.SocketRFIDService
         public static System.Net.IPAddress ipAddress = null;
         //启动开始开始时间//
         public static DateTime dtStatrt = DateTime.Now;
+        public static DateTime _dtStatrtClearRFIDID = DateTime.Now;
+
         public void GetMessage()
         {
             //如果newsock不为空，那说明不是第一次进来，那么只需要开启一下状态就好
@@ -121,8 +128,10 @@ namespace AnXinWH.SocketRFIDService
                 ms.Bind(localEndPoint);
                 ms.Listen(100);
 
+
                 //启动开始开始时间//
-                DateTime dtStatrt = DateTime.Now;
+                dtStatrt = DateTime.Now;
+                _dtStatrtClearRFIDID = DateTime.Now;
 
                 while (true)
                 {
@@ -352,7 +361,7 @@ namespace AnXinWH.SocketRFIDService
 
                                     db.t_stockoutctnnodetail.Add(tmpNewStockDetails);
 
-                                    db.SaveChanges();
+                                    //db.SaveChanges();
                                 }
 
 
@@ -370,21 +379,19 @@ namespace AnXinWH.SocketRFIDService
                                     tmpstock.gwet -= tmpstockdetailForOut.gwet;
                                     tmpstock.nwet -= tmpstockdetailForOut.nwet;
 
-                                    var tmpflagsave = db.SaveChanges();
+                                    //if (tmpflagsave > 0)
+                                    //{
+                                    //    logger.DebugFormat("*开始出库*********#########Save flag:{0}.", tmpflagsave);
+                                    //    logger.DebugFormat("*开始出库**********#########更新库存成功,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
+                                    //    logger.DebugFormat("*开始出库**********#########更新库存后:箱数:{0},数量:{1},重量:{2},净重:{3}", tmpstock.pqty, tmpstock.qty, tmpstock.gwet, tmpstock.nwet);
 
-                                    if (tmpflagsave > 0)
-                                    {
-                                        logger.DebugFormat("*开始出库*********#########Save flag:{0}.", tmpflagsave);
-                                        logger.DebugFormat("*开始出库**********#########更新库存成功,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
-                                        logger.DebugFormat("*开始出库**********#########更新库存后:箱数:{0},数量:{1},重量:{2},净重:{3}", tmpstock.pqty, tmpstock.qty, tmpstock.gwet, tmpstock.nwet);
+                                    //}
+                                    //else
+                                    //{
+                                    //    logger.DebugFormat("*error开始出库**********#########更新库存失败,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
 
-                                    }
-                                    else
-                                    {
-                                        logger.DebugFormat("*error开始出库**********#########更新库存失败,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
-
-                                        return false;
-                                    }
+                                    //    return false;
+                                    //}
                                 }
                                 else
                                 {
@@ -402,7 +409,11 @@ namespace AnXinWH.SocketRFIDService
 
                                 if (tmpRetunCount > 0)
                                 {
-                                    logger.DebugFormat("*success出库明细**********#########t_stockdetail: 更新成功明细出库标记，共有{0}条已更新.仓单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpRetunCount, tmpstockdetailForOut.receiptNo, tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
+                                    //logger.DebugFormat("*success出库明细**********#########t_stockdetail: 更新成功明细出库标记，共有{0}条已更新.仓单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpRetunCount, tmpstockdetailForOut.receiptNo, tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
+                                    logger.DebugFormat("*success出库**********#########:更新成功，共有{0}条已更新.仓单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpRetunCount, tmpstockdetailForOut.receiptNo, tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
+
+                                    var tmpflagsave = db.SaveChanges();
+
                                     return true;
                                 }
 
@@ -442,6 +453,8 @@ namespace AnXinWH.SocketRFIDService
 
             Socket handler = state.workSocket;
 
+            List<string[]> tmpGetList = new List<string[]>();
+
             try
             {
 
@@ -459,20 +472,79 @@ namespace AnXinWH.SocketRFIDService
                     Array.Copy(state.buffer, tmpBuffer, bytesReadLength);
 
                     var to16 = tmpBuffer.ToList().Select(m => m.ToString("X")).ToArray();
-                    var toChar = tmpBuffer.ToList().Select(m => (Char)m).ToArray();
 
+                    //len:9
+                    //A5,1,6,81,42,25,0,B7,B5
+                    //get it 81,42,25
 
-                    logger.DebugFormat("*******************_______*********************#read {0} client {1} bytes, String: {2},Buffer16:{3}.", tw_strIP, bytesReadLength, new string(toChar), String.Join(",", to16));
-                    logger.InfoFormat("#read {0} client {1} bytes,String: {2}, Buffer16:{3}.", tw_strIP, bytesReadLength, new string(toChar), String.Join(",", to16));
+                    if (to16.Length > 9)
+                    {
 
+                        int tmplen = to16.Length;
+                        while (tmplen > 0)
+                        {
+                            string[] tmp169 = new string[9];
+                            tmplen -= 9;
+                            Array.Copy(to16, tmplen, tmp169, 0, 9);
+                            tmpGetList.Add(tmp169);
+                        }
+                    }
+                    else
+                    {
+                        tmpGetList.Add(to16);
+                    }
 
+                    logger.DebugFormat("#*************Get {0} 个 RFID.", tmpGetList.Count());
+                    logger.InfoFormat("#*************Get {0}  个 RFID.", tmpGetList.Count());
+                    foreach (var item in tmpGetList)
+                    {
+                        string[] toChar = new string[3];//tmpBuffer.ToList().Select(m => (Char)m).ToArray();
+                        Array.Copy(item, 3, toChar, 0, 3);
+                        string tmpMoveFlag = item[6];
 
-                    //处理数据
-                    //test to send back    
-                    handler.Send(state.buffer, 0, bytesReadLength, SocketFlags.None);
+                        var tmpItemRFID = String.Join("", toChar);
 
-                    //todo test
-                    var tmpResule = changeInOrOutStock(Program._sysType, new string(toChar));
+                        if (_tmpListScanRFID.Keys.Contains(tmpItemRFID))
+                        {
+
+                            if (_tmpListScanRFID[tmpItemRFID])
+                            {
+                                logger.DebugFormat("#***********已扫并处理OK，不做处理。RFID: {0}, Buffer16:{1}.", tmpItemRFID, String.Join(",", item));
+                                logger.InfoFormat("#***********已扫并处理OK，不做处理。RFID: {0}, Buffer16:{1}.", tmpItemRFID, String.Join(",", item));
+
+                                continue;
+                            }
+                            else
+                            {
+                                logger.DebugFormat("#***********已扫但处理失败，重做处理。RFID: {0}, Buffer16:{1}.", tmpItemRFID, String.Join(",", item));
+
+                            }
+
+                        }
+                        else
+                        {
+                            _tmpListScanRFID.Add(tmpItemRFID, false);
+                        }
+
+                        logger.DebugFormat("*******************_______*********************#read {0} client {1} bytes, RFID: {2},Buffer16:{3}.", tw_strIP, bytesReadLength, tmpItemRFID, String.Join(",", item));
+                        logger.InfoFormat("#read {0} client {1} bytes,RFID: {2}, Buffer16:{3}.", tw_strIP, bytesReadLength, tmpItemRFID, String.Join(",", item));
+                        if (tmpMoveFlag.Equals("1"))
+                        {
+                            logger.InfoFormat("#read {0} Move Flag.", tmpMoveFlag);
+                        }
+                        logger.DebugFormat("#read {0} Move Flag.", tmpMoveFlag);
+
+                        
+                        //处理数据
+                        //test to send back    
+                        //handler.Send(state.buffer, 0, bytesReadLength, SocketFlags.None);
+
+                        //todo test
+                        var tmpResule = changeInOrOutStock(Program._sysType, tmpItemRFID);
+                        _tmpListScanRFID[tmpItemRFID] = tmpResule;
+                        //logger.InfoFormat("SQL result:{0}.", tmpResule);
+
+                    }
 
                     //close current workSocket
 
@@ -500,6 +572,12 @@ namespace AnXinWH.SocketRFIDService
 
                 try
                 {
+                    if (DateTime.Compare(DateTime.Now, _dtStatrtClearRFIDID.AddSeconds(5)) > 0)
+                    {
+                        logger.DebugFormat("****{0} 分钟到了。清理采集的数据个数：{1}。", Program._sysCompareMin, _tmpListScanRFID.Count());
+                        _tmpListScanRFID.Clear();
+                        _dtStatrtClearRFIDID = DateTime.Now;
+                    }
                     if (DateTime.Compare(DateTime.Now, dtStatrt.AddHours(1)) > 0)
                     {
                         logger.DebugFormat("***********hander close.{0}", handler);

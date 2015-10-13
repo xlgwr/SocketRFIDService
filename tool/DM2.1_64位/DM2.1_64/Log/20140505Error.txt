@@ -1,0 +1,56 @@
+Message: 要在此字符串中进行分析，必须指定有效信息。
+Source: mscorlib
+StackTrace :   在 System.Enum.Parse(Type enumType, String value, Boolean ignoreCase)
+   在 DeviceManagement.MyShortcutKey..ctor(String keyString) 位置 E:\new work\back_zq\64bit_dm\DeviceManagerV2_DLL-2010-11-11\MyShortcutKey.cs:行号 57
+   在 DeviceManagement.Program.ReadMyShortcutKeys() 位置 E:\new work\back_zq\64bit_dm\DeviceManagerV2_DLL-2010-11-11\Program.cs:行号 75
+TargetSite :System.Object Parse(System.Type, System.String, Boolean)
+-------------------------------------------------------------------------
+Message: 要在此字符串中进行分析，必须指定有效信息。
+Source: mscorlib
+StackTrace :   在 System.Enum.Parse(Type enumType, String value, Boolean ignoreCase)
+   在 DeviceManagement.MyShortcutKey..ctor(String keyString) 位置 E:\new work\back_zq\64bit_dm\DeviceManagerV2_DLL-2010-11-11\MyShortcutKey.cs:行号 57
+   在 DeviceManagement.Program.ReadMyShortcutKeys() 位置 E:\new work\back_zq\64bit_dm\DeviceManagerV2_DLL-2010-11-11\Program.cs:行号 75
+TargetSite :System.Object Parse(System.Type, System.String, Boolean)
+-------------------------------------------------------------------------
+Message: 要在此字符串中进行分析，必须指定有效信息。
+Source: mscorlib
+StackTrace :   在 System.Enum.Parse(Type enumType, String value, Boolean ignoreCase)
+   在 DeviceManagement.MyShortcutKey..ctor(String keyString) 位置 E:\new work\back_zq\64bit_dm\DeviceManagerV2_DLL-2010-11-11\MyShortcutKey.cs:行号 57
+   在 DeviceManagement.Program.ReadMyShortcutKeys() 位置 E:\new work\back_zq\64bit_dm\DeviceManagerV2_DLL-2010-11-11\Program.cs:行号 75
+TargetSite :System.Object Parse(System.Type, System.String, Boolean)
+-------------------------------------------------------------------------
+Message: 要在此字符串中进行分析，必须指定有效信息。
+Source: mscorlib
+StackTrace :   在 System.Enum.Parse(Type enumType, String value, Boolean ignoreCase)
+   在 DeviceManagement.MyShortcutKey..ctor(String keyString) 位置 E:\new work\back_zq\64bit_dm\DeviceManagerV2_DLL-2010-11-11\MyShortcutKey.cs:行号 57
+   在 DeviceManagement.Program.ReadMyShortcutKeys() 位置 E:\new work\back_zq\64bit_dm\DeviceManagerV2_DLL-2010-11-11\Program.cs:行号 75
+TargetSite :System.Object Parse(System.Type, System.String, Boolean)
+-------------------------------------------------------------------------
+Message: 要在此字符串中进行分析，必须指定有效信息。
+Source: mscorlib
+StackTrace :   在 System.Enum.Parse(Type enumType, String value, Boolean ignoreCase)
+   在 DeviceManagement.MyShortcutKey..ctor(String keyString) 位置 E:\new work\back_zq\64bit_dm\DeviceManagerV2_DLL-2010-11-11\MyShortcutKey.cs:行号 57
+   在 DeviceManagement.Program.ReadMyShortcutKeys() 位置 E:\new work\back_zq\64bit_dm\DeviceManagerV2_DLL-2010-11-11\Program.cs:行号 75
+TargetSite :System.Object Parse(System.Type, System.String, Boolean)
+-------------------------------------------------------------------------
+Message: 要在此字符串中进行分析，必须指定有效信息。
+Source: mscorlib
+StackTrace :   在 System.Enum.Parse(Type enumType, String value, Boolean ignoreCase)
+   在 DeviceManagement.MyShortcutKey..ctor(String keyString) 位置 E:\new work\back_zq\64bit_dm\DeviceManagerV2_DLL-2010-11-11\MyShortcutKey.cs:行号 57
+   在 DeviceManagement.Program.ReadMyShortcutKeys() 位置 E:\new work\back_zq\64bit_dm\DeviceManagerV2_DLL-2010-11-11\Program.cs:行号 75
+TargetSite :System.Object Parse(System.Type, System.String, Boolean)
+-------------------------------------------------------------------------
+Message: 要在此字符串中进行分析，必须指定有效信息。
+Source: mscorlib
+StackTrace :   在 System.Enum.Parse(Type enumType, String value, Boolean ignoreCase)
+   在 DeviceManagement.MyShortcutKey..ctor(String keyString) 位置 E:\new work\back_zq\64bit_dm\DeviceManagerV2_DLL-2010-11-11\MyShortcutKey.cs:行号 57
+   在 DeviceManagement.Program.ReadMyShortcutKeys() 位置 E:\new work\back_zq\64bit_dm\DeviceManagerV2_DLL-2010-11-11\Program.cs:行号 75
+TargetSite :System.Object Parse(System.Type, System.String, Boolean)
+-------------------------------------------------------------------------
+Message: 要在此字符串中进行分析，必须指定有效信息。
+Source: mscorlib
+StackTrace :   在 System.Enum.Parse(Type enumType, String value, Boolean ignoreCase)
+   在 DeviceManagement.MyShortcutKey..ctor(String keyString) 位置 E:\new work\back_zq\64bit_dm\DeviceManagerV2_DLL-2010-11-11\MyShortcutKey.cs:行号 57
+   在 DeviceManagement.Program.ReadMyShortcutKeys() 位置 E:\new work\back_zq\64bit_dm\DeviceManagerV2_DLL-2010-11-11\Program.cs:行号 75
+TargetSite :System.Object Parse(System.Type, System.String, Boolean)
+-------------------------------------------------------------------------

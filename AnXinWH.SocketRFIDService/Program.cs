@@ -21,8 +21,9 @@ namespace AnXinWH.SocketRFIDService
         ///  <!--出入库标记，0：入库，1：出库-->
         /// </summary>
         public static string _sysType { get; private set; }
+        public static string _sysCompareMin { get; private set; }
 
-        public static void setSysType()
+        public static void setSysConfig()
         {
             try
             {
@@ -31,6 +32,17 @@ namespace AnXinWH.SocketRFIDService
             catch (Exception ex)
             {
                 _sysType = "0";
+                logger.Error(ex);
+            }
+
+            //sysCompareMin
+            try
+            {
+                _sysCompareMin = System.Configuration.ConfigurationManager.AppSettings["sysCompareMin"].ToString();
+            }
+            catch (Exception ex)
+            {
+                _sysCompareMin = "5";
                 logger.Error(ex);
             }
         }
@@ -60,7 +72,7 @@ namespace AnXinWH.SocketRFIDService
         {
             try
             {
-                setSysType();
+                setSysConfig();
                 ServiceBase[] ServicesToRun;
                 ServicesToRun = new ServiceBase[] 
                  { 
