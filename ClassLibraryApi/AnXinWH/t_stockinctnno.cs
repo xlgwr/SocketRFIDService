@@ -6,7 +6,6 @@ namespace ClassLibraryApi.AnXinWH
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    //[Table("anxinwh.t_stockinctnno")]
     public partial class t_stockinctnno
     {
         [Key]

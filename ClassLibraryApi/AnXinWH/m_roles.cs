@@ -6,7 +6,6 @@ namespace ClassLibraryApi.AnXinWH
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    //[Table("anxinwh.m_roles")]
     public partial class m_roles
     {
         [Key]

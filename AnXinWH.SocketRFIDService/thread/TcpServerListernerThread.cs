@@ -84,7 +84,7 @@ namespace AnXinWH.SocketRFIDService
 
         public static System.Net.Sockets.TcpListener mSocketL;
         public static System.Threading.Thread mThread;
-        public static String mPort = "";
+        public static String mPort = "8088";
         public static String mIP = "127.0.0.1";
         public static int mBlockLog = 0;
         public static Encoding encoding = Encoding.GetEncoding("GB2312"); //解码器（可以用于汉字）         private Socket client;         private string data = null; 
@@ -152,7 +152,10 @@ namespace AnXinWH.SocketRFIDService
             }
             catch (Exception ex)
             {
-                ms.Dispose();
+                if (ms != null)
+                {
+                    ms.Dispose();
+                }
                 logger.Error(ex.Message.ToString());
             }
             finally
@@ -250,19 +253,39 @@ namespace AnXinWH.SocketRFIDService
 
         }
         /// <summary>
-        ///  <!--出入库标记，0：入库，1：出库-->
+        ///  <!--0：入库，1：出库，2：报警/点检-->
         ///  出入库标记更新
         ///  status 状态 smallint 默认1:可用 0:不可用
         /// </summary>
         /// <param name="sysType"></param>
         /// <returns></returns>
-        public bool changeInOrOutStock(string sysType, string tmpStrRFID)
+        public bool toDoSomeThing(string tmpStrRFID, string tmpMoveFlag, string RFIDClientIP)
         {
+            string sysType = "";
+            m_terminaldevice tmpDevice = null;
+
             try
             {
+                using (var db = new MysqlDbContext())
+                {
+                    tmpDevice = db.m_terminaldevice.Where(m => m.ModelNo.Equals("500") && m.SerialNoIPAddr.Equals(RFIDClientIP)).FirstOrDefault();
+
+                    if (tmpDevice != null)
+                    {
+                        sysType = tmpDevice.TerminalType;
+                        logger.DebugFormat("*******#############{0},开始处理操作：{1},IP:{2}", tmpDevice.TerminalType, tmpDevice.TerminalName, RFIDClientIP);
+                    }
+                    else
+                    {
+                        logger.ErrorFormat("*******#############****Error: 没有找到 {0} 对应的设备。", RFIDClientIP);
+                        return false;
+                    }
+                }
+
                 switch (sysType)
                 {
                     case "0":
+                        #region stock in
                         //0：入库
                         //查实际入库明细(2),有-->更新为(1);
                         using (var db = new MysqlDbContext())
@@ -282,7 +305,7 @@ namespace AnXinWH.SocketRFIDService
                                 if (tmpRetunCount > 0)
                                 {
                                     logger.DebugFormat("*#入库**********#########t_stockinctnnodetail: 更新成功入库标记，共有{0}条已更新.入库单号:{1},货物编号：{2},托盘号:{3}，rfid_no:{4}", tmpRetunCount, tmpModelin.stockin_id, tmpModelin.prdct_no, tmpModelin.ctnno_no, tmpStrRFID);
-
+                                    sendTxtToLED(tmpStrRFID, tmpDevice);
                                     return true;
                                 }
 
@@ -293,8 +316,9 @@ namespace AnXinWH.SocketRFIDService
                             return false;
                         }
                         break;
-
+                        #endregion
                     case "1":
+                        #region stock out
                         //1：出库
                         using (var db = new MysqlDbContext())
                         {
@@ -415,6 +439,7 @@ namespace AnXinWH.SocketRFIDService
 
                                     var tmpflagsave = db.SaveChanges();
 
+                                    sendTxtToLED(tmpstockdetailForOut.shelf_no, tmpDevice);
                                     return true;
                                 }
 
@@ -428,6 +453,45 @@ namespace AnXinWH.SocketRFIDService
                             return false;
                         }
                         break;
+                        #endregion
+                    case "2":
+                        #region 报警
+                        if (tmpMoveFlag.Equals("1"))
+                        {
+                            using (var db = new MysqlDbContext())
+                            {
+                                var tmpNewAlerm = new t_alarmdata();
+                                tmpNewAlerm.recd_id = DateTime.Now.ToString("yyyyMMddhhmmss") + "R" + tmpStrRFID;
+                                tmpNewAlerm.alarm_type = "Alarm_04";
+                                tmpNewAlerm.depot_no = "0";
+                                tmpNewAlerm.cell_no = "0";
+                                tmpNewAlerm.begin_time = DateTime.Now;
+                                tmpNewAlerm.over_time = DateTime.Now;
+                                tmpNewAlerm.remark = "RFID:" + tmpStrRFID + "移动。";
+                                tmpNewAlerm.status = 1;
+                                tmpNewAlerm.addtime = DateTime.Now;
+                                tmpNewAlerm.adduser = "admin";
+                                tmpNewAlerm.updtime = DateTime.Now;
+                                tmpNewAlerm.upduser = "admin";
+                                db.t_alarmdata.Add(tmpNewAlerm);
+                                db.SaveChanges();
+                            }
+                        }
+                        #endregion
+
+                        #region 点检
+                        using (var db = new MysqlDbContext())
+                        {
+                            var tmpCheckPoint = db.m_checkpoint.ToList();
+                            var isToCheck=currTimeExit(tmpCheckPoint);
+                            if (isToCheck)
+                            {
+
+                            }
+                        }
+                        return false;
+                        break;
+                        #endregion
 
                     default:
                         break;
@@ -438,11 +502,37 @@ namespace AnXinWH.SocketRFIDService
             }
             catch (Exception ex)
             {
-                logger.ErrorFormat("{0}:{1},flag:{2},rfid_no:{3}", 240, ex, sysType, tmpStrRFID);
+                logger.ErrorFormat("{0}:{1},flag:{2},rfid_no:{3}", 481, ex, sysType, tmpStrRFID);
                 return false;
             }
         }
+        bool currTimeExit(IList<m_checkpoint> tmpCheckPoint)
+        {
+            try
+            {
+                var currDateTime=DateTime.Now;
+                var currTotalMin = currDateTime.Hour * 60 + currDateTime.Minute;
 
+                foreach (var item in tmpCheckPoint)
+                {
+                    var tmpTime = item.checktime.Split(':');
+                    var tmpstartTime = Convert.ToInt32(tmpTime[0]) * 60 + Convert.ToInt32(tmpTime[1]);
+                    if (currTotalMin >= tmpstartTime && currTotalMin < (tmpstartTime + 5))
+                    {
+                        logger.DebugFormat("******当前时间：{0} 在时间：{1} 内(5分钟内）,开始点检采集数据。", currDateTime, item.checktime);
+                        return true;
+                        break;
+                    }
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                logger.ErrorFormat("****获取RFID点检时间失败，{0}", ex);
+                throw ex;
+            }
+            return false;
+        }
         public void ReadCallback(IAsyncResult ar)
         {
 
@@ -505,7 +595,6 @@ namespace AnXinWH.SocketRFIDService
 
                         var tmpItemRFID = String.Join("", toChar);
 
-                        sendTxtToLED(tmpItemRFID);
 
                         if (_tmpListScanRFID.Keys.Contains(tmpItemRFID))
                         {
@@ -515,10 +604,12 @@ namespace AnXinWH.SocketRFIDService
                                 logger.DebugFormat("#***********已扫并处理OK，不做处理。RFID: {0}, Buffer16:{1}.", tmpItemRFID, String.Join(",", item));
                                 logger.InfoFormat("#***********已扫并处理OK，不做处理。RFID: {0}, Buffer16:{1}.", tmpItemRFID, String.Join(",", item));
 
+                                //sendTxtToLED(tmpItemRFID);
                                 continue;
                             }
                             else
                             {
+                                // sendTxtToLED(tmpItemRFID);// + "已扫"
                                 logger.DebugFormat("#***********已扫但处理失败，重做处理。RFID: {0}, Buffer16:{1}.", tmpItemRFID, String.Join(",", item));
 
                             }
@@ -531,6 +622,7 @@ namespace AnXinWH.SocketRFIDService
 
                         logger.DebugFormat("*******************_______*********************#read {0} client {1} bytes, RFID: {2},Buffer16:{3}.", tw_strIP, bytesReadLength, tmpItemRFID, String.Join(",", item));
                         logger.InfoFormat("#read {0} client {1} bytes,RFID: {2}, Buffer16:{3}.", tw_strIP, bytesReadLength, tmpItemRFID, String.Join(",", item));
+
                         if (tmpMoveFlag.Equals("1"))
                         {
                             logger.InfoFormat("#read {0} Move Flag.", tmpMoveFlag);
@@ -543,8 +635,13 @@ namespace AnXinWH.SocketRFIDService
                         //handler.Send(state.buffer, 0, bytesReadLength, SocketFlags.None);
 
                         //todo test
-                        var tmpResule = changeInOrOutStock(Program._sysType, tmpItemRFID);
+                        var tmpResule = toDoSomeThing(tmpItemRFID, tmpMoveFlag, tw_strIP);
+                        //if (tmpResule)
+                        //{
+                        //    sendTxtToLED(tmpItemRFID);
+                        //}
                         _tmpListScanRFID[tmpItemRFID] = tmpResule;
+
                         //logger.InfoFormat("SQL result:{0}.", tmpResule);
 
                     }
@@ -601,14 +698,15 @@ namespace AnXinWH.SocketRFIDService
         #region LED
         private const int WM_LED_NOTIFY = 1025;
         CLEDSender LEDSender = new CLEDSender();
-        public void sendTxtToLED(string tmpTxt)
+        public void sendTxtToLED(string tmpTxt, m_terminaldevice deviceLED)
         {
             try
             {
                 TSenderParam param = new TSenderParam();
                 ushort K;
 
-                GetDeviceParam(ref param.devParam);
+                GetDeviceParam(ref param.devParam, deviceLED);
+
                 param.notifyMode = LEDSender.NOTIFY_EVENT;
                 // param.wmHandle = (UInt32)Handle;
                 param.wmMessage = WM_LED_NOTIFY;
@@ -625,7 +723,7 @@ namespace AnXinWH.SocketRFIDService
                     LEDSender.FONT_SET_16, 0xff, 1, 1, 2, 1, 0, 1, 1000);
 
                 //send
-                Parse(LEDSender.Do_LED_SendToScreen(ref param, K));
+                Parse(LEDSender.Do_LED_SendToScreen(ref param, K), tmpTxt);
             }
             catch (Exception ex)
             {
@@ -633,33 +731,47 @@ namespace AnXinWH.SocketRFIDService
             }
 
         }
-        private void Parse(Int32 K)
+        private void Parse(Int32 K, string tmpTxt)
         {
-            if (K == LEDSender.R_DEVICE_READY) logger.InfoFormat("正在执行命令或者发送数据...");
-            else if (K == LEDSender.R_DEVICE_INVALID) logger.InfoFormat("打开通讯设备失败(串口不存在、或者串口已被占用、或者网络端口被占用)");
-            else if (K == LEDSender.R_DEVICE_BUSY) logger.InfoFormat("设备忙，正在通讯中...");
+            if (K == LEDSender.R_DEVICE_READY) logger.InfoFormat("**LED:{0},正在执行命令或者发送数据...", tmpTxt);
+            else if (K == LEDSender.R_DEVICE_INVALID) logger.InfoFormat("**LED:{0},打开通讯设备失败(串口不存在、或者串口已被占用、或者网络端口被占用)", tmpTxt);
+            else if (K == LEDSender.R_DEVICE_BUSY) logger.InfoFormat("**LED:{0},设备忙，正在通讯中...", tmpTxt);
         }
-        private void GetDeviceParam(ref TDeviceParam param)
+        private void GetDeviceParam(ref TDeviceParam param, m_terminaldevice deviceLED)
         {
+            try
+            {
+                //param.devType = LEDSender.DEVICE_TYPE_UDP;
 
-            //param.devType = LEDSender.DEVICE_TYPE_UDP;
-
-            //param.comPort = (ushort)Convert.ToInt16(0);
-            //param.comSpeed = (ushort)38400;
-            //param.locPort = (ushort)Convert.ToInt16(Program._locPort);
-            //param.rmtHost = Program._rmtHost; ;
-            //param.rmtPort = (ushort)Convert.ToInt16(Program._rmtPort);
-            //param.dstAddr = (ushort)Convert.ToInt16(Program._dstAddr); 
+                //param.comPort = (ushort)Convert.ToInt16(0);
+                //param.comSpeed = (ushort)38400;
+                //param.locPort = (ushort)Convert.ToInt16(Program._locPort);
+                //param.rmtHost = Program._rmtHost; ;
+                //param.rmtPort = (ushort)Convert.ToInt16(Program._rmtPort);
+                //param.dstAddr = (ushort)Convert.ToInt16(Program._dstAddr); 
 
 
-            param.devType = LEDSender.DEVICE_TYPE_UDP;
+                param.devType = LEDSender.DEVICE_TYPE_UDP;
 
-            param.comPort = (ushort)Convert.ToInt16(1);
-            param.comSpeed = (ushort)19200;
-            param.locPort = (ushort)Convert.ToInt16(8881);
-            param.rmtHost = "192.168.1.199";
-            param.rmtPort = 6666;
-            param.dstAddr = 0;
+                //param.comPort = (ushort)Convert.ToInt16(1);
+                //param.comSpeed = (ushort)19200;
+                //param.locPort = (ushort)Convert.ToInt16(8881);
+
+
+
+                param.rmtHost = deviceLED.param1;// "192.168.1.199";
+                param.rmtPort = (ushort)Convert.ToInt16(deviceLED.param2); //6666;
+
+
+
+                param.dstAddr = 0;
+            }
+            catch (Exception ex)
+            {
+                logger.ErrorFormat("获取LED参数失败,Error:{0}", ex);
+                throw ex;
+            }
+
         }
         #endregion
         private void ProcessDate(Object obj)

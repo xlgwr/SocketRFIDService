@@ -6,7 +6,6 @@ namespace ClassLibraryApi.AnXinWH
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    ////[Table("anxinwh.t_interface")]
     public partial class t_interface
     {
         [Key]

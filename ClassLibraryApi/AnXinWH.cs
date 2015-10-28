@@ -38,9 +38,12 @@ namespace ClassLibraryApi.AnXinWH
         public virtual DbSet<t_bespeakdetail> t_bespeakdetail { get; set; }
         public virtual DbSet<t_cash> t_cash { get; set; }
         public virtual DbSet<t_cashdetail> t_cashdetail { get; set; }
+        public virtual DbSet<t_checkdetailresult> t_checkdetailresult { get; set; }
+        public virtual DbSet<t_checkresult> t_checkresult { get; set; }
         public virtual DbSet<t_functioninfo> t_functioninfo { get; set; }
         public virtual DbSet<t_interface> t_interface { get; set; }
         public virtual DbSet<t_roles> t_roles { get; set; }
+        public virtual DbSet<t_sampling> t_sampling { get; set; }
         public virtual DbSet<t_stock> t_stock { get; set; }
         public virtual DbSet<t_stockdetail> t_stockdetail { get; set; }
         public virtual DbSet<t_stockin> t_stockin { get; set; }
@@ -53,12 +56,11 @@ namespace ClassLibraryApi.AnXinWH
         public virtual DbSet<t_stockoutdetail> t_stockoutdetail { get; set; }
         public virtual DbSet<t_syslogrecd> t_syslogrecd { get; set; }
         public virtual DbSet<t_terminaalarm> t_terminaalarm { get; set; }
-
+        public virtual DbSet<t_stockinsign> t_stockinsign { get; set; }
+        public virtual DbSet<t_stockoutsign> t_stockoutsign { get; set; }
+        
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<m_checkpoint>()
-                .Property(e => e.checktime)
-                .IsUnicode(false);
 
             base.OnModelCreating(modelBuilder);
             //指定单数形式的表名

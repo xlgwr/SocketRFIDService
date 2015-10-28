@@ -6,37 +6,39 @@ namespace ClassLibraryApi.AnXinWH
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    public partial class t_alarmdata
+    public partial class t_checkresult
     {
         [Key]
-        [StringLength(255)]
-        public string recd_id { get; set; }
+        [StringLength(30)]
+        public string check_id { get; set; }
+
+        public DateTime check_date { get; set; }
 
         [Required]
-        [StringLength(255)]
-        public string alarm_type { get; set; }
+        [StringLength(30)]
+        public string bespeak_no { get; set; }
 
         [Required]
-        [StringLength(255)]
-        public string depot_no { get; set; }
+        [StringLength(48)]
+        public string bespeak_date { get; set; }
 
         [Required]
-        [StringLength(255)]
-        public string cell_no { get; set; }
+        [StringLength(16)]
+        public string user_no { get; set; }
 
-        public DateTime begin_time { get; set; }
-
-        public DateTime? over_time { get; set; }
-
-        [StringLength(255)]
-        public string remark { get; set; }
+        [Required]
+        [StringLength(32)]
+        public string user_nm { get; set; }
 
         public short status { get; set; }
 
         [StringLength(255)]
+        public string remark { get; set; }
+
+        [StringLength(16)]
         public string adduser { get; set; }
 
-        [StringLength(255)]
+        [StringLength(16)]
         public string upduser { get; set; }
 
         public DateTime? addtime { get; set; }

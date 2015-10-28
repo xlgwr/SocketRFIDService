@@ -6,7 +6,6 @@ namespace ClassLibraryApi.AnXinWH
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    //[Table("anxinwh.t_syslogrecd")]
     public partial class t_syslogrecd
     {
         [Key]
@@ -16,7 +15,7 @@ namespace ClassLibraryApi.AnXinWH
 
         [Column("operator")]
         [StringLength(32)]
-        public string tmpoperator { get; set; }
+        public string ooperator { get; set; }
 
         [StringLength(32)]
         public string message { get; set; }

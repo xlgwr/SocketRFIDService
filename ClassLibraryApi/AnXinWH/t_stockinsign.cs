@@ -6,31 +6,27 @@ namespace ClassLibraryApi.AnXinWH
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    public partial class m_shelf
+    public partial class t_stockinsign
     {
         [Key]
-        [StringLength(16)]
-        public string shelf_no { get; set; }
+        [Column(Order = 0)]
+        [StringLength(30)]
+        public string bespeak_no { get; set; }
 
+        [Key]
+        [Column(Order = 1)]
         [StringLength(32)]
-        public string shelf_nm { get; set; }
+        public string stockin_id { get; set; }
 
+        [Required]
         [StringLength(16)]
-        public string depot_no { get; set; }
+        public string user_no { get; set; }
 
-        [StringLength(16)]
-        public string shelf_type { get; set; }
+        [Required]
+        [StringLength(30)]
+        public string pickIdentity { get; set; }
 
-        [StringLength(128)]
-        public string area { get; set; }
-
-        [StringLength(128)]
-        public string location { get; set; }
-
-        [StringLength(258)]
-        public string remark { get; set; }
-
-        public short? status { get; set; }
+        public short status { get; set; }
 
         [StringLength(16)]
         public string adduser { get; set; }

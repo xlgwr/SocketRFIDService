@@ -18,6 +18,9 @@ using System.Collections;
 using System.Net.Sockets;
 using System.Net;
 
+using MysqlDbContext = ClassLibraryApi.AnXinWH.AnXinWH;
+using MySql.Data.MySqlClient;
+
 namespace AnXinWH.SocketRFIDService
 {
     public class Test
@@ -52,8 +55,8 @@ namespace AnXinWH.SocketRFIDService
         {
             try
             {
-                scheduler.Start();
-                AllMsg("Quartz服务成功启动.");
+                //scheduler.Start();
+                //AllMsg("Quartz服务成功启动.");
 
                 //
                 Working();
@@ -137,7 +140,7 @@ namespace AnXinWH.SocketRFIDService
                 TcpListernerThread.mIP = ConfigurationManager.AppSettings["ServerIP"];
                 TcpListernerThread.mPort = ConfigurationManager.AppSettings["ServerPort"];
 
-                var tmpType = Program._sysType.Equals("0") ? "入库" : "出库";
+                var tmpType = "RFID采集服务";//Program._sysType.Equals("0") ? "入库" : "出库";
                 AllMsg("******************" + tmpType + "************************");
                 AllMsg("TcpListener 监听服务成功启动.*  * IP:" + TcpListernerThread.mIP + ", Port:" + TcpListernerThread.mPort);
                 AllMsg("******************" + tmpType + "************************");

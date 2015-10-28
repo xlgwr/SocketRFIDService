@@ -6,15 +6,20 @@ namespace ClassLibraryApi.AnXinWH
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    //[Table("anxinwh.t_bespeakdetail")]
     public partial class t_bespeakdetail
     {
         [Key]
+        [Column(Order = 0)]
         [StringLength(30)]
         public string bespeak_no { get; set; }
 
+        [Key]
+        [Column(Order = 1)]
         [StringLength(48)]
         public string prdct_no { get; set; }
+
+        [StringLength(30)]
+        public string pc { get; set; }
 
         [StringLength(10)]
         public string item_no { get; set; }
@@ -29,8 +34,9 @@ namespace ClassLibraryApi.AnXinWH
 
         public float? qty { get; set; }
 
-        [StringLength(30)]
-        public string pc { get; set; }
+        public float? nwgt { get; set; }
+
+        public float? gwgt { get; set; }
 
         [StringLength(20)]
         public string ctnno { get; set; }

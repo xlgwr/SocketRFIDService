@@ -6,7 +6,6 @@ namespace ClassLibraryApi.AnXinWH
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    //[Table("anxinwh.t_stockdetail")]
     public partial class t_stockdetail
     {
         [Key]
@@ -43,9 +42,6 @@ namespace ClassLibraryApi.AnXinWH
         [StringLength(256)]
         public string remark { get; set; }
 
-        /// <summary>
-        /// 1:在库可用,0:不可用(出库更新库存时更新(1-->0)
-        /// </summary>
         public short status { get; set; }
 
         [StringLength(16)]
@@ -54,8 +50,8 @@ namespace ClassLibraryApi.AnXinWH
         [StringLength(16)]
         public string upduser { get; set; }
 
-        public DateTime addtime { get; set; }
+        public DateTime? addtime { get; set; }
 
-        public DateTime updtime { get; set; }
+        public DateTime? updtime { get; set; }
     }
 }

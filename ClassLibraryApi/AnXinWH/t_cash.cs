@@ -6,7 +6,6 @@ namespace ClassLibraryApi.AnXinWH
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    //[Table("anxinwh.t_cash")]
     public partial class t_cash
     {
         [Key]
@@ -25,7 +24,7 @@ namespace ClassLibraryApi.AnXinWH
         public string custorder { get; set; }
 
         [StringLength(50)]
-        public string contaccter { get; set; }
+        public string contacter { get; set; }
 
         [StringLength(50)]
         public string tel { get; set; }
@@ -47,10 +46,6 @@ namespace ClassLibraryApi.AnXinWH
 
         [StringLength(30)]
         public string vendorcode { get; set; }
-
-        public float? gwgt { get; set; }
-
-        public float? nwgt { get; set; }
 
         [StringLength(10)]
         public string coo { get; set; }

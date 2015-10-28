@@ -139,7 +139,7 @@ namespace AnXinWH.SocketRFIDService
             TcpListernerThread.mPort = ConfigurationManager.AppSettings["ServerPort"];
 
 
-            var tmpType = Program._sysType.Equals("0") ? "入库" : "出库";
+            var tmpType = "RFID采集服务";//Program._sysType.Equals("0") ? "入库" : "出库";
             AllMsg("******************[ " + tmpType + " ]************************");
             AllMsg("*_* *_* *_* *_* *_*_______________#_# #_# #_# #_# #_# #_# ");
             AllMsg("     *_* 监听服务成功启动.IP:" + TcpListernerThread.mIP + ", Port:" + TcpListernerThread.mPort);        

@@ -6,7 +6,6 @@ namespace ClassLibraryApi.AnXinWH
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    //[Table("anxinwh.t_stockoutctnnodetail")]
     public partial class t_stockoutctnnodetail
     {
         [Key]
@@ -36,9 +35,9 @@ namespace ClassLibraryApi.AnXinWH
 
         public float qty { get; set; }
 
-        public float nwet { get; set; }
+        public float? nwet { get; set; }
 
-        public float gwet { get; set; }
+        public float? gwet { get; set; }
 
         public short status { get; set; }
 

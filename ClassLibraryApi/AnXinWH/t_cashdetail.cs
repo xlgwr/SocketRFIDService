@@ -6,7 +6,6 @@ namespace ClassLibraryApi.AnXinWH
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    //[Table("anxinwh.t_cashdetail")]
     public partial class t_cashdetail
     {
         [Key]
@@ -30,6 +29,10 @@ namespace ClassLibraryApi.AnXinWH
 
         public float? qty { get; set; }
 
+        public float? nwgt { get; set; }
+
+        public float? gwgt { get; set; }
+
         [StringLength(30)]
         public string quanlity { get; set; }
 
@@ -38,6 +41,12 @@ namespace ClassLibraryApi.AnXinWH
 
         [StringLength(30)]
         public string package { get; set; }
+
+        [StringLength(96)]
+        public string rfid_no { get; set; }
+
+        [StringLength(50)]
+        public string receiptNo { get; set; }
 
         [StringLength(256)]
         public string remark { get; set; }

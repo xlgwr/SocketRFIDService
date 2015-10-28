@@ -6,18 +6,19 @@ namespace ClassLibraryApi.AnXinWH
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    public partial class m_depot
+    public partial class t_sampling
     {
         [Key]
-        [StringLength(8)]
-        public string depot_no { get; set; }
+        [StringLength(96)]
+        public string rfid_no { get; set; }
 
-        [Required]
-        [StringLength(32)]
-        public string depot_nm { get; set; }
+        public float qty { get; set; }
 
-        [StringLength(256)]
-        public string remark { get; set; }
+        public float nwet { get; set; }
+
+        public float gwet { get; set; }
+
+        public float agwet { get; set; }
 
         public short status { get; set; }
 

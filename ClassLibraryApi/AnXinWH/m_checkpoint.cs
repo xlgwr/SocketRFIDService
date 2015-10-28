@@ -6,7 +6,6 @@ namespace ClassLibraryApi.AnXinWH
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    //[Table("anxinwh.m_checkpoint")]
     public partial class m_checkpoint
     {
         [Key]
@@ -14,7 +13,7 @@ namespace ClassLibraryApi.AnXinWH
         public string checkpointno { get; set; }
 
         [Required]
-        [StringLength(16)]
+        [StringLength(8)]
         public string checktime { get; set; }
 
         [StringLength(256)]

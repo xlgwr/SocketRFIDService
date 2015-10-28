@@ -6,7 +6,6 @@ namespace ClassLibraryApi.AnXinWH
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    //[Table("anxinwh.t_stockoutdetail")]
     public partial class t_stockoutdetail
     {
         [Key]
@@ -34,7 +33,6 @@ namespace ClassLibraryApi.AnXinWH
         [StringLength(30)]
         public string pc { get; set; }
 
-
         [StringLength(50)]
         public string receiptNo { get; set; }
 
@@ -50,7 +48,7 @@ namespace ClassLibraryApi.AnXinWH
         [StringLength(20)]
         public string quanlity { get; set; }
 
-        public short status { get; set; }
+        public short? status { get; set; }
 
         [Required]
         [StringLength(16)]
@@ -63,5 +61,9 @@ namespace ClassLibraryApi.AnXinWH
         public DateTime addtime { get; set; }
 
         public DateTime updtime { get; set; }
+
+        [Required]
+        [StringLength(256)]
+        public string remark { get; set; }
     }
 }

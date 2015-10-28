@@ -6,7 +6,6 @@ namespace ClassLibraryApi.AnXinWH
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    //[Table("anxinwh.t_bespeak")]
     public partial class t_bespeak
     {
         [Key]
@@ -37,15 +36,17 @@ namespace ClassLibraryApi.AnXinWH
         [StringLength(50)]
         public string carrrier { get; set; }
 
+        [StringLength(16)]
+        public string pickuser_no { get; set; }
+
+        [StringLength(30)]
+        public string pickIdentity { get; set; }
+
         [StringLength(50)]
         public string tanspotno { get; set; }
 
         [StringLength(30)]
         public string vendorcode { get; set; }
-
-        public float? gwgt { get; set; }
-
-        public float? nwgt { get; set; }
 
         [StringLength(10)]
         public string coo { get; set; }
