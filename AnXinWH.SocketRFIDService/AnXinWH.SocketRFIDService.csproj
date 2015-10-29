@@ -115,7 +115,7 @@
     <Compile Include="Led\tc_LED_API.cs" />
     <Compile Include="thread\TcpClientThread.cs" />
     <Compile Include="thread\TcpServerListernerThread.cs" />
-    <Compile Include="Model\Class1.cs" />
+    <Compile Include="Model\viewModels.cs" />
     <Compile Include="Service1.cs">
       <SubType>Component</SubType>
     </Compile>

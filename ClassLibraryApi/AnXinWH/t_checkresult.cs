@@ -9,24 +9,24 @@ namespace ClassLibraryApi.AnXinWH
     public partial class t_checkresult
     {
         [Key]
-        [StringLength(30)]
+        [StringLength(128)]
         public string check_id { get; set; }
 
         public DateTime check_date { get; set; }
 
-        [Required]
+        //[Required]
         [StringLength(30)]
         public string bespeak_no { get; set; }
 
-        [Required]
+        //[Required]
         [StringLength(48)]
         public string bespeak_date { get; set; }
 
-        [Required]
+        //[Required]
         [StringLength(16)]
         public string user_no { get; set; }
 
-        [Required]
+        //[Required]
         [StringLength(32)]
         public string user_nm { get; set; }
 
@@ -41,8 +41,8 @@ namespace ClassLibraryApi.AnXinWH
         [StringLength(16)]
         public string upduser { get; set; }
 
-        public DateTime? addtime { get; set; }
+        public DateTime addtime { get; set; }
 
-        public DateTime? updtime { get; set; }
+        public DateTime updtime { get; set; }
     }
 }

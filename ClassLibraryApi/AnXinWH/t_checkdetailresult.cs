@@ -10,7 +10,7 @@ namespace ClassLibraryApi.AnXinWH
     {
         [Key]
         [Column(Order = 0)]
-        [StringLength(32)]
+        [StringLength(128)]
         public string check_id { get; set; }
 
         [Key]
@@ -28,7 +28,7 @@ namespace ClassLibraryApi.AnXinWH
         [StringLength(96)]
         public string rfid_no { get; set; }
 
-        [StringLength(50)]
+        //[StringLength(50)]
         public string receiptNo { get; set; }
 
         public float? qty { get; set; }
@@ -40,11 +40,11 @@ namespace ClassLibraryApi.AnXinWH
         [StringLength(30)]
         public string cell_no { get; set; }
 
-        [Required]
+        //[Required]
         [StringLength(255)]
         public string remark { get; set; }
 
-        public short? status { get; set; }
+        public short status { get; set; }
 
         [Required]
         [StringLength(16)]

@@ -17,6 +17,7 @@ using MysqlDbContext = ClassLibraryApi.AnXinWH.AnXinWH;
 using MySql.Data.MySqlClient;
 using ClassLibraryApi.AnXinWH;
 using AnXinWH.SocketRFIDService.Led;
+using AnXinWH.SocketRFIDService.Model;
 
 namespace AnXinWH.SocketRFIDService
 {
@@ -76,6 +77,7 @@ namespace AnXinWH.SocketRFIDService
         /// N 分钟内扫描无效
         /// </summary>
         public static Dictionary<string, bool> _tmpListScanRFID = new Dictionary<string, bool>();
+        public static Dictionary<string, bool> _tmpCurrCheckPoint = new Dictionary<string, bool>();
         public TcpListernerThread()
         {
             logger = LogManager.GetLogger(GetType());
@@ -84,6 +86,7 @@ namespace AnXinWH.SocketRFIDService
 
         public static System.Net.Sockets.TcpListener mSocketL;
         public static System.Threading.Thread mThread;
+        public static Random _tmpRandom = new Random(100000);
         public static String mPort = "8088";
         public static String mIP = "127.0.0.1";
         public static int mBlockLog = 0;
@@ -211,6 +214,7 @@ namespace AnXinWH.SocketRFIDService
             catch (Exception ex)
             {
                 logger.Error("******AcceptCallback:{0}.", ex);
+
             }
 
         }
@@ -288,6 +292,32 @@ namespace AnXinWH.SocketRFIDService
                 {
                     case "0":
                         #region stock in
+
+                        if (_tmpListScanRFID.Keys.Contains(tmpStrRFID))
+                        {
+
+                            if (_tmpListScanRFID[tmpStrRFID])
+                            {
+                                logger.DebugFormat("#***********已扫并处理OK，不做处理。RFID: {0}", tmpStrRFID);
+                                logger.InfoFormat("#***********已扫并处理OK，不做处理。RFID: {0}", tmpStrRFID);
+
+                                //sendTxtToLED(tmpItemRFID);
+                                return true;
+                            }
+                            else
+                            {
+                                // sendTxtToLED(tmpItemRFID);// + "已扫"
+                                logger.DebugFormat("#***********已扫但处理失败，重做处理。RFID: {0}", tmpStrRFID);
+
+                            }
+
+                        }
+                        else
+                        {
+                            _tmpListScanRFID.Add(tmpStrRFID, false);
+                        }
+
+
                         //0：入库
                         //查实际入库明细(2),有-->更新为(1);
                         using (var db = new MysqlDbContext())
@@ -321,6 +351,31 @@ namespace AnXinWH.SocketRFIDService
                         #endregion
                     case "2":
                         #region stock out
+
+                        if (_tmpListScanRFID.Keys.Contains(tmpStrRFID))
+                        {
+
+                            if (_tmpListScanRFID[tmpStrRFID])
+                            {
+                                logger.DebugFormat("#***********已扫并处理OK，不做处理。RFID: {0}", tmpStrRFID);
+                                logger.InfoFormat("#***********已扫并处理OK，不做处理。RFID: {0}", tmpStrRFID);
+
+                                //sendTxtToLED(tmpItemRFID);
+                                return true;
+                            }
+                            else
+                            {
+                                // sendTxtToLED(tmpItemRFID);// + "已扫"
+                                logger.DebugFormat("#***********已扫但处理失败，重做处理。RFID: {0}", tmpStrRFID);
+
+                            }
+
+                        }
+                        else
+                        {
+                            _tmpListScanRFID.Add(tmpStrRFID, false);
+                        }
+
                         //1：出库
                         using (var db = new MysqlDbContext())
                         {
@@ -457,20 +512,21 @@ namespace AnXinWH.SocketRFIDService
                         break;
                         #endregion
                     case "1":
+                        var tmpShelf = "没找到对应货架。";
+                        var tmpStockDetail = new t_stockdetail();
                         #region 报警
                         if (tmpMoveFlag.Equals("1"))
                         {
                             using (var db = new MysqlDbContext())
                             {
-                                var tmpShelf = "没找到对应货架。";
-                                var tmpStockIn = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).FirstOrDefault();
-                                if (tmpStockIn != null)
-                                {
-                                    tmpShelf = tmpStockIn.shelf_no;
-                                }
 
+                                tmpStockDetail = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).FirstOrDefault();
+                                if (tmpStockDetail != null)
+                                {
+                                    tmpShelf = tmpStockDetail.shelf_no;
+                                }
                                 var tmpNewAlerm = new t_alarmdata();
-                                tmpNewAlerm.recd_id = DateTime.Now.ToString("yyyyMMddhhmmss") + "R" + tmpStrRFID;
+                                tmpNewAlerm.recd_id = DateTime.Now.ToString("yyyyMMddhhmmss") + _tmpRandom.Next(100000).ToString() + "R" + tmpStrRFID;
                                 tmpNewAlerm.alarm_type = "Alarm_04";
                                 tmpNewAlerm.depot_no = "0";
                                 tmpNewAlerm.cell_no = tmpStrRFID;
@@ -479,9 +535,9 @@ namespace AnXinWH.SocketRFIDService
                                 tmpNewAlerm.remark = "RFID:" + tmpStrRFID + "移动了。货架号：" + tmpShelf;
                                 tmpNewAlerm.status = 1;
                                 tmpNewAlerm.addtime = DateTime.Now;
-                                tmpNewAlerm.adduser = "admin";
+                                tmpNewAlerm.adduser = "StocketRFID";
                                 tmpNewAlerm.updtime = DateTime.Now;
-                                tmpNewAlerm.upduser = "admin";
+                                tmpNewAlerm.upduser = "StocketRFID";
                                 db.t_alarmdata.Add(tmpNewAlerm);
                                 var saveflag = db.SaveChanges();
 
@@ -504,11 +560,78 @@ namespace AnXinWH.SocketRFIDService
                         #region 点检
                         using (var db = new MysqlDbContext())
                         {
-                            var tmpCheckPoint = db.m_checkpoint.ToList();
-                            var isToCheck = currTimeExit(tmpCheckPoint);
-                            if (isToCheck)
-                            {
 
+                            tmpStockDetail = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).FirstOrDefault();
+
+                            var tmpCheckPoint = db.m_checkpoint.ToList();
+                            var isToCheck = currTimeExit(tmpCheckPoint, tmpStrRFID);
+
+                            if (isToCheck.isIn)
+                            {
+                                var tmpNewt_checkresult = new t_checkresult();
+                                var tmpNewt_checkdetailresult = new t_checkdetailresult();
+
+                                var tmpGuidId = Guid.NewGuid().ToString();
+                                #region 主表
+                                tmpNewt_checkresult.check_id = tmpGuidId;
+                                tmpNewt_checkresult.check_date = isToCheck.checktimeNow;
+                                tmpNewt_checkresult.bespeak_no = "RFID";
+                                tmpNewt_checkresult.bespeak_date = isToCheck.checktime;
+                                tmpNewt_checkresult.user_no = "点检";
+                                tmpNewt_checkresult.user_nm = tmpStrRFID;
+                                tmpNewt_checkresult.status = 1;
+                                tmpNewt_checkresult.remark = "点检:" + isToCheck.checktime + ",RFID:" + tmpStrRFID;
+
+                                tmpNewt_checkresult.addtime = DateTime.Now;
+                                tmpNewt_checkresult.adduser = "StocketRFID";
+                                tmpNewt_checkresult.updtime = DateTime.Now;
+                                tmpNewt_checkresult.upduser = "StocketRFID";
+
+
+                                db.t_checkresult.Add(tmpNewt_checkresult);
+
+                                var saveflag2 = db.SaveChanges();
+
+                                #endregion
+                                #region 主表明细
+                                tmpNewt_checkdetailresult.check_id = tmpGuidId;
+                                tmpNewt_checkdetailresult.out_item_no = "1";
+                                tmpNewt_checkdetailresult.rfid_no = tmpStrRFID;
+
+                                if (tmpStockDetail != null)
+                                {
+                                    tmpNewt_checkdetailresult.prdct_no = tmpStockDetail.prdct_no;
+                                    tmpNewt_checkdetailresult.receiptNo = tmpStockDetail.receiptNo;
+                                    tmpNewt_checkdetailresult.qty = tmpStockDetail.qty;
+                                    tmpNewt_checkdetailresult.nwet = tmpStockDetail.nwet;
+                                    tmpNewt_checkdetailresult.gwet = tmpStockDetail.gwet;
+                                    tmpNewt_checkdetailresult.cell_no = tmpStockDetail.shelf_no;
+                                    tmpNewt_checkdetailresult.remark = "点检：" + isToCheck.checktime + ",RFID:" + tmpStrRFID;
+                                    tmpNewt_checkdetailresult.status = 1;
+
+                                    tmpNewt_checkdetailresult.addtime = DateTime.Now;
+                                    tmpNewt_checkdetailresult.adduser = "StocketRFID";
+                                    tmpNewt_checkdetailresult.updtime = DateTime.Now;
+                                    tmpNewt_checkdetailresult.upduser = "StocketRFID";
+
+                                    db.t_checkdetailresult.Add(tmpNewt_checkdetailresult);
+
+                                    saveflag2 += db.SaveChanges();
+                                }
+
+                                #endregion
+
+                                if (saveflag2 > 0)
+                                {
+
+                                    logger.DebugFormat("********点检 保存完成。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3},货架：{4}.", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag2, tmpShelf);
+
+                                }
+                                else
+                                {
+
+                                    logger.DebugFormat("********点检 保存失败。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3},货架：{4}", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag2, tmpShelf);
+                                }
                             }
                         }
                         return false;
@@ -525,35 +648,57 @@ namespace AnXinWH.SocketRFIDService
             catch (Exception ex)
             {
                 logger.ErrorFormat("{0}:{1},flag:{2},rfid_no:{3}", 481, ex, sysType, tmpStrRFID);
+                throw ex;
                 return false;
             }
         }
-        bool currTimeExit(IList<m_checkpoint> tmpCheckPoint)
+        CheckTime currTimeExit(IList<m_checkpoint> tmpCheckPoint, string tmpStrRFID)
         {
+            var tmpCheckTime = new CheckTime();
+            tmpCheckTime.isIn = false;
             try
             {
                 var currDateTime = DateTime.Now;
                 var currTotalMin = currDateTime.Hour * 60 + currDateTime.Minute;
-
+                var tmpallTime = "";
                 foreach (var item in tmpCheckPoint)
                 {
                     var tmpTime = item.checktime.Split(':');
                     var tmpstartTime = Convert.ToInt32(tmpTime[0]) * 60 + Convert.ToInt32(tmpTime[1]);
                     if (currTotalMin >= tmpstartTime && currTotalMin < (tmpstartTime + 5))
                     {
-                        logger.DebugFormat("******当前时间：{0} 在时间：{1} 内(5分钟内）,开始点检采集数据。", currDateTime, item.checktime);
-                        return true;
+                        logger.DebugFormat("******当前时间：{0} 在时间：{1} (>=5分钟内）,开始点检采集数据。", currDateTime, item.checktime);
+                        tmpCheckTime.checktime = item.checktime;
+                        tmpCheckTime.checktimeNow = currDateTime;
+                        tmpCheckTime.isIn = true;
+
+                        using (var dbs = new MysqlDbContext())
+                        {
+                            var isExitRFID = dbs.Database.SqlQuery<t_checkresult>("select * from t_checkresult where DATE_FORMAT(check_date,'%Y%m%d')=DATE_FORMAT(NOW(),'%Y%m%d') and bespeak_date=@p0 and user_nm=@p1", item.checktime, tmpStrRFID).FirstOrDefault();
+                            if (isExitRFID != null)
+                            {
+                                tmpCheckTime.isIn = false;
+                                logger.DebugFormat("******当前时间：{0},点检时间：{1}，RFID:{2} 已点检过 。", currDateTime, item.checktime, tmpStrRFID);
+                            }
+                            else
+                            {
+                                logger.DebugFormat("******当前时间：{0},点检时间：{1}，RFID:{2} 未点检过 。", currDateTime, item.checktime, tmpStrRFID);
+                            }
+                        }
+                        return tmpCheckTime;
                         break;
                     }
+                    tmpallTime += item.checktime + ",";
                 }
-                return false;
+                logger.DebugFormat("******当前时间：{0} 不在【{1}】内(5分钟内）。", currDateTime, tmpallTime);
+                return tmpCheckTime;
             }
             catch (Exception ex)
             {
                 logger.ErrorFormat("****获取RFID点检时间失败，{0}", ex);
                 throw ex;
             }
-            return false;
+            return tmpCheckTime;
         }
         public void ReadCallback(IAsyncResult ar)
         {
@@ -617,39 +762,8 @@ namespace AnXinWH.SocketRFIDService
 
                         var tmpItemRFID = String.Join("", toChar);
 
-
-                        if (_tmpListScanRFID.Keys.Contains(tmpItemRFID))
-                        {
-
-                            if (_tmpListScanRFID[tmpItemRFID])
-                            {
-                                logger.DebugFormat("#***********已扫并处理OK，不做处理。RFID: {0}, Buffer16:{1}.", tmpItemRFID, String.Join(",", item));
-                                logger.InfoFormat("#***********已扫并处理OK，不做处理。RFID: {0}, Buffer16:{1}.", tmpItemRFID, String.Join(",", item));
-
-                                //sendTxtToLED(tmpItemRFID);
-                                continue;
-                            }
-                            else
-                            {
-                                // sendTxtToLED(tmpItemRFID);// + "已扫"
-                                logger.DebugFormat("#***********已扫但处理失败，重做处理。RFID: {0}, Buffer16:{1}.", tmpItemRFID, String.Join(",", item));
-
-                            }
-
-                        }
-                        else
-                        {
-                            _tmpListScanRFID.Add(tmpItemRFID, false);
-                        }
-
                         logger.DebugFormat("*******************_______*********************#read {0} client {1} bytes, RFID: {2},Buffer16:{3}.", tw_strIP, bytesReadLength, tmpItemRFID, String.Join(",", item));
                         logger.InfoFormat("#read {0} client {1} bytes,RFID: {2}, Buffer16:{3}.", tw_strIP, bytesReadLength, tmpItemRFID, String.Join(",", item));
-
-                        if (tmpMoveFlag.Equals("1"))
-                        {
-                            logger.InfoFormat("#read {0} Move Flag.", tmpMoveFlag);
-                        }
-                        logger.DebugFormat("#read {0} Move Flag.", tmpMoveFlag);
 
 
                         //处理数据
