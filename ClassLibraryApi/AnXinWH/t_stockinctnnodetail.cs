@@ -39,7 +39,7 @@ namespace ClassLibraryApi.AnXinWH
 
         public float? gwet { get; set; }
 
-        public short status { get; set; }
+        public Int16 status { get; set; }
 
         [StringLength(16)]
         public string adduser { get; set; }

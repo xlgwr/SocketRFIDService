@@ -253,7 +253,7 @@ namespace AnXinWH.SocketRFIDService
 
         }
         /// <summary>
-        ///  <!--0：入库，1：出库，2：报警/点检-->
+        ///  <!--0：入库，1：报警/点检，2：出库-->
         ///  出入库标记更新
         ///  status 状态 smallint 默认1:可用 0:不可用
         /// </summary>
@@ -266,14 +266,16 @@ namespace AnXinWH.SocketRFIDService
 
             try
             {
+                logger.DebugFormat("*******#############IP:{0},移动标记：{1}，RFID:{2}.", RFIDClientIP, tmpMoveFlag, tmpStrRFID);
+
                 using (var db = new MysqlDbContext())
                 {
                     tmpDevice = db.m_terminaldevice.Where(m => m.ModelNo.Equals("500") && m.SerialNoIPAddr.Equals(RFIDClientIP)).FirstOrDefault();
 
                     if (tmpDevice != null)
                     {
-                        sysType = tmpDevice.TerminalType;
-                        logger.DebugFormat("*******#############{0},开始处理操作：{1},IP:{2}", tmpDevice.TerminalType, tmpDevice.TerminalName, RFIDClientIP);
+                        sysType = tmpDevice.param3;
+                        logger.DebugFormat("*******############# {0},开始处理操作：{1},IP:{2}", tmpDevice.param3, tmpDevice.TerminalName, RFIDClientIP);
                     }
                     else
                     {
@@ -317,7 +319,7 @@ namespace AnXinWH.SocketRFIDService
                         }
                         break;
                         #endregion
-                    case "1":
+                    case "2":
                         #region stock out
                         //1：出库
                         using (var db = new MysqlDbContext())
@@ -454,27 +456,47 @@ namespace AnXinWH.SocketRFIDService
                         }
                         break;
                         #endregion
-                    case "2":
+                    case "1":
                         #region 报警
                         if (tmpMoveFlag.Equals("1"))
                         {
                             using (var db = new MysqlDbContext())
                             {
+                                var tmpShelf = "没找到对应货架。";
+                                var tmpStockIn = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).FirstOrDefault();
+                                if (tmpStockIn != null)
+                                {
+                                    tmpShelf = tmpStockIn.shelf_no;
+                                }
+
                                 var tmpNewAlerm = new t_alarmdata();
                                 tmpNewAlerm.recd_id = DateTime.Now.ToString("yyyyMMddhhmmss") + "R" + tmpStrRFID;
                                 tmpNewAlerm.alarm_type = "Alarm_04";
                                 tmpNewAlerm.depot_no = "0";
-                                tmpNewAlerm.cell_no = "0";
+                                tmpNewAlerm.cell_no = tmpStrRFID;
                                 tmpNewAlerm.begin_time = DateTime.Now;
                                 tmpNewAlerm.over_time = DateTime.Now;
-                                tmpNewAlerm.remark = "RFID:" + tmpStrRFID + "移动。";
+                                tmpNewAlerm.remark = "RFID:" + tmpStrRFID + "移动了。货架号：" + tmpShelf;
                                 tmpNewAlerm.status = 1;
                                 tmpNewAlerm.addtime = DateTime.Now;
                                 tmpNewAlerm.adduser = "admin";
                                 tmpNewAlerm.updtime = DateTime.Now;
                                 tmpNewAlerm.upduser = "admin";
                                 db.t_alarmdata.Add(tmpNewAlerm);
-                                db.SaveChanges();
+                                var saveflag = db.SaveChanges();
+
+                                if (saveflag > 0)
+                                {
+
+                                    logger.DebugFormat("********报警 保存完成。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3},货架：{4}.", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag, tmpShelf);
+
+                                }
+                                else
+                                {
+
+                                    logger.DebugFormat("********报警 保存失败。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3},货架：{4}", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag, tmpShelf);
+                                }
+
                             }
                         }
                         #endregion
@@ -483,7 +505,7 @@ namespace AnXinWH.SocketRFIDService
                         using (var db = new MysqlDbContext())
                         {
                             var tmpCheckPoint = db.m_checkpoint.ToList();
-                            var isToCheck=currTimeExit(tmpCheckPoint);
+                            var isToCheck = currTimeExit(tmpCheckPoint);
                             if (isToCheck)
                             {
 
@@ -510,7 +532,7 @@ namespace AnXinWH.SocketRFIDService
         {
             try
             {
-                var currDateTime=DateTime.Now;
+                var currDateTime = DateTime.Now;
                 var currTotalMin = currDateTime.Hour * 60 + currDateTime.Minute;
 
                 foreach (var item in tmpCheckPoint)
