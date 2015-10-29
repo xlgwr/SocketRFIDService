@@ -526,7 +526,7 @@ namespace AnXinWH.SocketRFIDService
                                     tmpShelf = tmpStockDetail.shelf_no;
                                 }
                                 var tmpNewAlerm = new t_alarmdata();
-                                tmpNewAlerm.recd_id = DateTime.Now.ToString("yyyyMMddhhmmss") + _tmpRandom.Next(100000).ToString() + "R" + tmpStrRFID;
+                                tmpNewAlerm.recd_id = DateTime.Now.ToString("yyyyMMddhhmmss") +"D"+ _tmpRandom.Next(100000).ToString() + "R" + tmpStrRFID;
                                 tmpNewAlerm.alarm_type = "Alarm_04";
                                 tmpNewAlerm.depot_no = "0";
                                 tmpNewAlerm.cell_no = tmpStrRFID;
@@ -606,7 +606,7 @@ namespace AnXinWH.SocketRFIDService
                                     tmpNewt_checkdetailresult.nwet = tmpStockDetail.nwet;
                                     tmpNewt_checkdetailresult.gwet = tmpStockDetail.gwet;
                                     tmpNewt_checkdetailresult.cell_no = tmpStockDetail.shelf_no;
-                                    tmpNewt_checkdetailresult.remark = "点检：" + isToCheck.checktime + ",RFID:" + tmpStrRFID;
+                                    tmpNewt_checkdetailresult.remark = "点检:" + isToCheck.checktime + ",RFID:" + tmpStrRFID;
                                     tmpNewt_checkdetailresult.status = 1;
 
                                     tmpNewt_checkdetailresult.addtime = DateTime.Now;
