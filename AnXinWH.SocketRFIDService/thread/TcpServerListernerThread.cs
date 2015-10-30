@@ -662,15 +662,12 @@ namespace AnXinWH.SocketRFIDService
                 var currDateTime = DateTime.Now;
                 var currTotalMin = currDateTime.Hour * 60 + currDateTime.Minute;
                 var tmpallTime = "";
-                var istoSetPre = false;
                 foreach (var item in tmpCheckPoint)
                 {
                     var tmpTime = item.checktime.Split(':');
                     var tmpstartTime = Convert.ToInt32(tmpTime[0]) * 60 + Convert.ToInt32(tmpTime[1]);
-                    if (currTotalMin >= tmpstartTime && currTotalMin < (tmpstartTime + 5))
+                    if (currTotalMin >= tmpstartTime && currTotalMin <= (tmpstartTime + 2))
                     {
-                        istoSetPre = true;
-
                         logger.DebugFormat("******当前时间：{0} 在时间：{1} (>=5分钟内）,开始点检采集数据。", currDateTime, item.checktime);
                         tmpCheckTime.checktime = item.checktime;
 
@@ -692,12 +689,90 @@ namespace AnXinWH.SocketRFIDService
                             {
                                 tmpCheckTime.checktimePre = _tmpPreCheckTime;
                                 logger.InfoFormat("*******0点检：{0}，上次：{1}。", item.checktime, _tmpPreCheckTime);
-                                
+                                //to 检查上一次是否未检查到的RFID
+                                #region 点检报警检查
+                                try
+                                {
+                                    using (var dbs = new MysqlDbContext())
+                                    {
+                                        var isExitCheckRFID = dbs.Database.SqlQuery<int>("select count(*) from t_checkresult where DATE_FORMAT(check_date,'%Y%m%d')=DATE_FORMAT(NOW(),'%Y%m%d') and bespeak_date=@p0", _tmpPreCheckTime).FirstOrDefault();
+
+                                        if (isExitCheckRFID > 0)
+                                        {
+                                            var isCheckCount = dbs.t_checkresult.Where(m => m.bespeak_date.Equals(_tmpPreCheckTime) && m.status == 1).Count();
+
+                                            if (isCheckCount <= 0)
+                                            {
+                                                logger.DebugFormat("******点检报警检查*****当前点检时间：{0},上次点检时间：{1} 已检查 点检报警 过 。{2}", item.checktime, _tmpPreCheckTime, isCheckCount);
+                                            }
+                                            else
+                                            {
+                                                logger.DebugFormat("******点检报警检查*****当前点检时间：{0},上次点检时间：{1} 开始 检查点检报警 。{2}", item.checktime, _tmpPreCheckTime, isCheckCount);
+
+                                                var tmpStockDetails = dbs.t_stockdetail.Where(m => m.status == 1).ToList();
+
+                                                foreach (var tmpstock in tmpStockDetails)
+                                                {
+                                                    //check is ist
+                                                    var tmpPreCheckCurr = dbs.t_checkresult.Where(m => m.bespeak_date.Equals(_tmpPreCheckTime) && m.user_nm.Equals(tmpstock.rfid_no)).Count();
+
+                                                    logger.DebugFormat("**db:{0}.RFID:{1}", tmpPreCheckCurr, tmpstock.rfid_no);
+                                                    if (tmpPreCheckCurr <= 0)
+                                                    {
+                                                        logger.DebugFormat("**db Add:{0}.RFID:{1}", tmpPreCheckCurr, tmpstock.rfid_no);
+
+                                                        var isExitCheckSaveAleraRFID = dbs.Database.SqlQuery<int>("select count(*) from t_alarmdata where DATE_FORMAT(begin_time,'%Y%m%d')=DATE_FORMAT(NOW(),'%Y%m%d') and depot_no=@p0 and cell_no=@p1", _tmpPreCheckTime, tmpstock.rfid_no).FirstOrDefault();
+
+                                                        if (isExitCheckSaveAleraRFID <= 0)
+                                                        {
+                                                            //报警
+                                                            var tmpNewAlerm = new t_alarmdata();
+                                                            tmpNewAlerm.recd_id = DateTime.Now.ToString("yyyyMMddhhmmss") + "D" + _tmpRandom.Next(100000).ToString() + "R" + tmpstock.rfid_no;
+                                                            tmpNewAlerm.alarm_type = "Alarm_05";
+                                                            tmpNewAlerm.depot_no = _tmpPreCheckTime;
+                                                            tmpNewAlerm.cell_no = tmpstock.rfid_no;
+                                                            tmpNewAlerm.begin_time = DateTime.Now;
+                                                            tmpNewAlerm.over_time = DateTime.Now;
+                                                            tmpNewAlerm.remark = "RFID:" + tmpstock.rfid_no + "未点检到。点检时间：" + _tmpPreCheckTime;
+                                                            tmpNewAlerm.status = 1;
+                                                            tmpNewAlerm.addtime = DateTime.Now;
+                                                            tmpNewAlerm.adduser = "StocketRFID";
+                                                            tmpNewAlerm.updtime = DateTime.Now;
+                                                            tmpNewAlerm.upduser = "StocketRFID";
+                                                            dbs.t_alarmdata.Add(tmpNewAlerm);
+                                                        }
+
+                                                    }
+                                                    else
+                                                    {
+                                                        dbs.Database.ExecuteSqlCommand("update t_checkresult set t_checkresult.`status`='0' where user_nm=@p0", tmpstock.rfid_no);
+                                                    }
+
+
+                                                }
+                                                var saveflag = dbs.SaveChanges();
+                                            }
+                                        }
+                                        else
+                                        {
+                                            logger.DebugFormat("******点检报警检查*****当前点检时间：{0},上次点检时间：{1} 当天没有点检记录，Now:{2}.", item.checktime, _tmpPreCheckTime, DateTime.Now);
+
+                                        }
+
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    // throw;
+                                    logger.ErrorFormat("*******0点检：{0}，上次：{1}。Error:{2}", item.checktime, _tmpPreCheckTime, ex);
+                                    continue;
+                                }
+
+                                #endregion
                             }
 
                         }
-                        logger.InfoFormat("*******1点检：{0}，上次：{1}。", item.checktime, _tmpPreCheckTime);
-
+                        //logger.InfoFormat("*******1点检：{0}，上次：{1}。", item.checktime, _tmpPreCheckTime);
 
                         tmpCheckTime.checktimeNow = currDateTime;
                         tmpCheckTime.isIn = true;
@@ -720,11 +795,8 @@ namespace AnXinWH.SocketRFIDService
                     }
                     else
                     {
-                        if (istoSetPre)
-                        {
-                            _tmpPreCheckTime = item.checktime;
-                            istoSetPre = false;
-                        }
+                        logger.DebugFormat("Other Set: 点检：{0}，上次：{1}。",  item.checktime, _tmpPreCheckTime);
+                        _tmpPreCheckTime = item.checktime;
 
                     }
                     tmpallTime += item.checktime + ",";
