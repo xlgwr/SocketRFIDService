@@ -101,6 +101,7 @@ namespace AnXinWH.SocketRFIDService
         public static DateTime dtStatrt = DateTime.Now;
         public static DateTime _dtStatrtClearRFIDID = DateTime.Now;
 
+        public static string _tmpPreCheckTime = "";
         public void GetMessage()
         {
             //如果newsock不为空，那说明不是第一次进来，那么只需要开启一下状态就好
@@ -435,9 +436,9 @@ namespace AnXinWH.SocketRFIDService
                                     tmpNewStockDetails.qty = tmpstockdetailForOut.qty;
                                     tmpNewStockDetails.nwet = tmpstockdetailForOut.nwet;
                                     tmpNewStockDetails.gwet = tmpstockdetailForOut.gwet;
-                                    tmpNewStockDetails.adduser = "rfid";
+                                    tmpNewStockDetails.adduser = "RFIDStockOut";
                                     tmpNewStockDetails.updtime = DateTime.Now;
-                                    tmpNewStockDetails.upduser = "rfid";
+                                    tmpNewStockDetails.upduser = "RFIDStockOut";
                                     tmpNewStockDetails.addtime = DateTime.Now;
                                     tmpNewStockDetails.status = 1;
 
@@ -526,7 +527,7 @@ namespace AnXinWH.SocketRFIDService
                                     tmpShelf = tmpStockDetail.shelf_no;
                                 }
                                 var tmpNewAlerm = new t_alarmdata();
-                                tmpNewAlerm.recd_id = DateTime.Now.ToString("yyyyMMddhhmmss") +"D"+ _tmpRandom.Next(100000).ToString() + "R" + tmpStrRFID;
+                                tmpNewAlerm.recd_id = DateTime.Now.ToString("yyyyMMddhhmmss") + "D" + _tmpRandom.Next(100000).ToString() + "R" + tmpStrRFID;
                                 tmpNewAlerm.alarm_type = "Alarm_04";
                                 tmpNewAlerm.depot_no = "0";
                                 tmpNewAlerm.cell_no = tmpStrRFID;
@@ -563,7 +564,7 @@ namespace AnXinWH.SocketRFIDService
 
                             tmpStockDetail = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).FirstOrDefault();
 
-                            var tmpCheckPoint = db.m_checkpoint.ToList();
+                            var tmpCheckPoint = db.m_checkpoint.OrderBy(m => m.checktime).ToList();
                             var isToCheck = currTimeExit(tmpCheckPoint, tmpStrRFID);
 
                             if (isToCheck.isIn)
@@ -661,14 +662,43 @@ namespace AnXinWH.SocketRFIDService
                 var currDateTime = DateTime.Now;
                 var currTotalMin = currDateTime.Hour * 60 + currDateTime.Minute;
                 var tmpallTime = "";
+                var istoSetPre = false;
                 foreach (var item in tmpCheckPoint)
                 {
                     var tmpTime = item.checktime.Split(':');
                     var tmpstartTime = Convert.ToInt32(tmpTime[0]) * 60 + Convert.ToInt32(tmpTime[1]);
                     if (currTotalMin >= tmpstartTime && currTotalMin < (tmpstartTime + 5))
                     {
+                        istoSetPre = true;
+
                         logger.DebugFormat("******当前时间：{0} 在时间：{1} (>=5分钟内）,开始点检采集数据。", currDateTime, item.checktime);
                         tmpCheckTime.checktime = item.checktime;
+
+                        if (string.IsNullOrEmpty(_tmpPreCheckTime))
+                        {
+                            _tmpPreCheckTime = item.checktime;
+                            tmpCheckTime.checktimePre = "";
+
+                        }
+                        else
+                        {
+
+                            if (item.checktime.Equals(_tmpPreCheckTime))
+                            {
+                                _tmpPreCheckTime = item.checktime;
+                                tmpCheckTime.checktimePre = "";
+                            }
+                            else
+                            {
+                                tmpCheckTime.checktimePre = _tmpPreCheckTime;
+                                logger.InfoFormat("*******0点检：{0}，上次：{1}。", item.checktime, _tmpPreCheckTime);
+                                
+                            }
+
+                        }
+                        logger.InfoFormat("*******1点检：{0}，上次：{1}。", item.checktime, _tmpPreCheckTime);
+
+
                         tmpCheckTime.checktimeNow = currDateTime;
                         tmpCheckTime.isIn = true;
 
@@ -688,7 +718,17 @@ namespace AnXinWH.SocketRFIDService
                         return tmpCheckTime;
                         break;
                     }
+                    else
+                    {
+                        if (istoSetPre)
+                        {
+                            _tmpPreCheckTime = item.checktime;
+                            istoSetPre = false;
+                        }
+
+                    }
                     tmpallTime += item.checktime + ",";
+
                 }
                 logger.DebugFormat("******当前时间：{0} 不在【{1}】内(5分钟内）。", currDateTime, tmpallTime);
                 return tmpCheckTime;
@@ -1328,6 +1368,7 @@ namespace AnXinWH.SocketRFIDService
         }
 
         #endregion 用TcpListener监听(测试)
+
 
     }
 }
