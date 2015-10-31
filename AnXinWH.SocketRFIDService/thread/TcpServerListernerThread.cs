@@ -276,10 +276,28 @@ namespace AnXinWH.SocketRFIDService
                 using (var db = new MysqlDbContext())
                 {
                     tmpDevice = db.m_terminaldevice.Where(m => m.ModelNo.Equals("500") && m.SerialNoIPAddr.Equals(RFIDClientIP)).FirstOrDefault();
+                    //实际入库表
+                    var tmpcontStockIn = db.t_stockinctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 2).Count();
+                    //库存明细表
+                    var tmpcontStockOut = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 1).Count();
 
                     if (tmpDevice != null)
                     {
+
                         sysType = tmpDevice.param3;
+
+                        if (tmpcontStockIn > 0)
+                        {
+                            sysType = "0";
+                        }
+                        else
+                        {
+                            if (tmpcontStockOut > 0)
+                            {
+                                sysType = "2";
+                            }
+                        }
+
                         logger.DebugFormat("*******############# {0},开始处理操作：{1},IP:{2}", tmpDevice.param3, tmpDevice.TerminalName, RFIDClientIP);
                     }
                     else
@@ -733,7 +751,7 @@ namespace AnXinWH.SocketRFIDService
                                                             tmpNewAlerm.cell_no = tmpstock.rfid_no;
                                                             tmpNewAlerm.begin_time = DateTime.Now;
                                                             tmpNewAlerm.over_time = DateTime.Now;
-                                                            tmpNewAlerm.remark = "RFID:" + tmpstock.rfid_no + "未点检到。点检时间：" + _tmpPreCheckTime;
+                                                            tmpNewAlerm.remark = "RFID:" + tmpstock.rfid_no + ",没有点检到。点检时间：" + _tmpPreCheckTime;
                                                             tmpNewAlerm.status = 1;
                                                             tmpNewAlerm.addtime = DateTime.Now;
                                                             tmpNewAlerm.adduser = "StocketRFID";
@@ -795,7 +813,7 @@ namespace AnXinWH.SocketRFIDService
                     }
                     else
                     {
-                        logger.DebugFormat("Other Set: 点检：{0}，上次：{1}。",  item.checktime, _tmpPreCheckTime);
+                        logger.DebugFormat("Other Set: 点检：{0}，上次：{1}。", item.checktime, _tmpPreCheckTime);
                         _tmpPreCheckTime = item.checktime;
 
                     }
