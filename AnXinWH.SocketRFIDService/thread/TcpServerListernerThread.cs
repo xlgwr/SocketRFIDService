@@ -276,28 +276,31 @@ namespace AnXinWH.SocketRFIDService
                 using (var db = new MysqlDbContext())
                 {
                     tmpDevice = db.m_terminaldevice.Where(m => m.ModelNo.Equals("500") && m.SerialNoIPAddr.Equals(RFIDClientIP)).FirstOrDefault();
-                    //实际入库表
-                    var tmpcontStockIn = db.t_stockinctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 2).Count();
-                    //库存明细表
-                    var tmpcontStockOut = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 1).Count();
+
 
                     if (tmpDevice != null)
                     {
+                        //实际入库表
+                        var tmpcontStockIn = db.t_stockinctnnodetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 2).Count();
+                        //库存明细表
+                        var tmpcontStockOut = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 1).Count();
 
                         sysType = tmpDevice.param3;
 
-                        if (tmpcontStockIn > 0)
+                        if (!sysType.Equals("1"))
                         {
-                            sysType = "0";
-                        }
-                        else
-                        {
-                            if (tmpcontStockOut > 0)
+                            if (tmpcontStockIn > 0)
                             {
-                                sysType = "2";
+                                sysType = "0";
+                            }
+                            else
+                            {
+                                if (tmpcontStockOut > 0)
+                                {
+                                    sysType = "2";
+                                }
                             }
                         }
-
                         logger.DebugFormat("*******############# {0},开始处理操作：{1},IP:{2}", tmpDevice.param3, tmpDevice.TerminalName, RFIDClientIP);
                     }
                     else
@@ -417,6 +420,37 @@ namespace AnXinWH.SocketRFIDService
                                 {
                                     logger.DebugFormat("*开始出库**********#########没有仓单号,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
                                     //***********报警*********
+
+                                    var tmpNewAlerm = new t_alarmdata();
+                                    tmpNewAlerm.recd_id = DateTime.Now.ToString("yyyyMMddhhmmss") + "D" + _tmpRandom.Next(100000).ToString() + "R" + tmpStrRFID;
+                                    tmpNewAlerm.alarm_type = "Alarm_06";
+                                    tmpNewAlerm.depot_no = "0";
+                                    tmpNewAlerm.cell_no = tmpStrRFID;
+                                    tmpNewAlerm.begin_time = DateTime.Now;
+                                    tmpNewAlerm.over_time = DateTime.Now;
+                                    tmpNewAlerm.remark = "RFID:" + tmpStrRFID + "无出库指示。";
+                                    tmpNewAlerm.status = 1;
+                                    tmpNewAlerm.addtime = DateTime.Now;
+                                    tmpNewAlerm.adduser = "StocketRFID";
+                                    tmpNewAlerm.updtime = DateTime.Now;
+                                    tmpNewAlerm.upduser = "StocketRFID";
+                                    db.t_alarmdata.Add(tmpNewAlerm);
+                                    var saveflag = db.SaveChanges();
+
+                                    if (saveflag > 0)
+                                    {
+
+                                        logger.DebugFormat("********报警 保存完成。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3}.", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag);
+
+                                    }
+                                    else
+                                    {
+
+                                        logger.DebugFormat("********报警 保存失败。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3}", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag);
+                                    }
+                                    var tmpLedMsg = "无出库指示.";
+                                    sendTxtToLED(tmpLedMsg, tmpDevice);
+
                                     return false;
                                 }
                                 logger.DebugFormat("*开始出库**********#########共有{0}条记录.仓单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpstockdetailForOut.receiptNo, tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
@@ -429,6 +463,36 @@ namespace AnXinWH.SocketRFIDService
                                 if (tmpStockoutDetails == null)
                                 {
                                     logger.DebugFormat("*error开始出库**********{0}#########没有查到[有效的]货物出库明细记录.仓单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpstockdetailForOut.receiptNo, tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
+
+                                    var tmpNewAlerm = new t_alarmdata();
+                                    tmpNewAlerm.recd_id = DateTime.Now.ToString("yyyyMMddhhmmss") + "D" + _tmpRandom.Next(100000).ToString() + "R" + tmpStrRFID;
+                                    tmpNewAlerm.alarm_type = "Alarm_06";
+                                    tmpNewAlerm.depot_no = "0";
+                                    tmpNewAlerm.cell_no = tmpStrRFID;
+                                    tmpNewAlerm.begin_time = DateTime.Now;
+                                    tmpNewAlerm.over_time = DateTime.Now;
+                                    tmpNewAlerm.remark = "RFID:" + tmpStrRFID + ",仓单号:" + tmpstockdetailForOut.receiptNo + "没有查到[有效的]货物出库明细记录。";
+                                    tmpNewAlerm.status = 1;
+                                    tmpNewAlerm.addtime = DateTime.Now;
+                                    tmpNewAlerm.adduser = "StocketRFID";
+                                    tmpNewAlerm.updtime = DateTime.Now;
+                                    tmpNewAlerm.upduser = "StocketRFID";
+                                    db.t_alarmdata.Add(tmpNewAlerm);
+                                    var saveflag = db.SaveChanges();
+
+                                    if (saveflag > 0)
+                                    {
+
+                                        logger.DebugFormat("********报警 保存完成。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3}.", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag);
+
+                                    }
+                                    else
+                                    {
+
+                                        logger.DebugFormat("********报警 保存失败。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3}", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag);
+                                    }
+                                    var tmpLedMsg = "无出库指示.";
+                                    sendTxtToLED(tmpLedMsg, tmpDevice);
 
                                     return false;
                                 }
@@ -515,7 +579,9 @@ namespace AnXinWH.SocketRFIDService
 
                                     var tmpflagsave = db.SaveChanges();
 
-                                    sendTxtToLED(tmpstockdetailForOut.shelf_no, tmpDevice);
+                                    var tmpLedMsg = "仓单" + tmpstockdetailForOut.receiptNo + "托盘" + tmpstockdetailForOut.ctnno_no;//shelf_no;
+
+                                    sendTxtToLED(tmpLedMsg, tmpDevice);
                                     return true;
                                 }
 
@@ -968,6 +1034,7 @@ namespace AnXinWH.SocketRFIDService
         {
             try
             {
+                logger.DebugFormat("****Start to Send LED TXT:{0}", tmpTxt);
                 TSenderParam param = new TSenderParam();
                 ushort K;
 
@@ -1007,6 +1074,7 @@ namespace AnXinWH.SocketRFIDService
         {
             try
             {
+                logger.DebugFormat("*******send LDK,IP:{0},Port:{1}.", deviceLED.param1, deviceLED.param2);
                 //param.devType = LEDSender.DEVICE_TYPE_UDP;
 
                 //param.comPort = (ushort)Convert.ToInt16(0);
@@ -1019,9 +1087,9 @@ namespace AnXinWH.SocketRFIDService
 
                 param.devType = LEDSender.DEVICE_TYPE_UDP;
 
-                //param.comPort = (ushort)Convert.ToInt16(1);
-                //param.comSpeed = (ushort)19200;
-                //param.locPort = (ushort)Convert.ToInt16(8881);
+                param.comPort = (ushort)Convert.ToInt16(1);
+                param.comSpeed = (ushort)19200;
+                param.locPort = (ushort)Convert.ToInt16(8881);
 
 
 
