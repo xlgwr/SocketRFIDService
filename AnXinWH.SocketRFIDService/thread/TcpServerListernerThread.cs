@@ -359,11 +359,14 @@ namespace AnXinWH.SocketRFIDService
                                 if (tmpRetunCount > 0)
                                 {
                                     logger.DebugFormat("*#入库**********#########t_stockinctnnodetail: 更新成功入库标记，共有{0}条已更新.入库单号:{1},货物编号：{2},托盘号:{3}，rfid_no:{4}", tmpRetunCount, tmpModelin.stockin_id, tmpModelin.prdct_no, tmpModelin.ctnno_no, tmpStrRFID);
-                                    sendTxtToLED(tmpStrRFID, tmpDevice);
+                                    var tmpSendLedMsg = tmpStrRFID + "入库";
+                                    sendTxtToLED(tmpSendLedMsg, tmpDevice);
+                                    Program.saveLog("入库", "0入库:" + tmpStrRFID, 0, 1);
                                     return true;
                                 }
 
                                 logger.DebugFormat("*error开始入库*失败，系统错误,请联系管理员**************************************************************", tmpStrRFID);
+                                Program.saveLog("入库", "0入库:" + tmpStrRFID, 0, 0);
                                 return false;
                             }
                             logger.DebugFormat("*开始入库*失败，未查到[可入库/有效的]实际入库明细记录,RFID:{0}**************************************************************", tmpStrRFID);
@@ -448,7 +451,7 @@ namespace AnXinWH.SocketRFIDService
 
                                         logger.DebugFormat("********报警 保存失败。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3}", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag);
                                     }
-                                    var tmpLedMsg = "无出库指示.";
+                                    var tmpLedMsg = tmpStrRFID + "无出库指示.";
                                     sendTxtToLED(tmpLedMsg, tmpDevice);
 
                                     return false;
@@ -491,7 +494,7 @@ namespace AnXinWH.SocketRFIDService
 
                                         logger.DebugFormat("********报警 保存失败。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3}", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag);
                                     }
-                                    var tmpLedMsg = "无出库指示.";
+                                    var tmpLedMsg = tmpStrRFID + "无出库指示.";
                                     sendTxtToLED(tmpLedMsg, tmpDevice);
 
                                     return false;
@@ -582,10 +585,13 @@ namespace AnXinWH.SocketRFIDService
                                     var tmpLedMsg = "仓单" + tmpstockdetailForOut.receiptNo + "托盘" + tmpstockdetailForOut.ctnno_no;//shelf_no;
 
                                     sendTxtToLED(tmpLedMsg, tmpDevice);
+
+                                    Program.saveLog("出库", "2出库:" + tmpStrRFID, 1, 1);
                                     return true;
                                 }
 
                                 logger.DebugFormat("*error开始出库*失败，系统错误,请联系管理员**************************************************************", tmpStrRFID);
+                                Program.saveLog("出库", "2出库:" + tmpStrRFID, 1, 0);
                                 return false;
 
                                 #endregion
@@ -628,13 +634,13 @@ namespace AnXinWH.SocketRFIDService
 
                                 if (saveflag > 0)
                                 {
-
+                                    Program.saveLog("移动报警", "2移动报警:" + tmpStrRFID, 3, 1);
                                     logger.DebugFormat("********报警 保存完成。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3},货架：{4}.", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag, tmpShelf);
 
                                 }
                                 else
                                 {
-
+                                    Program.saveLog("移动报警", "2移动报警:" + tmpStrRFID, 3, 1);
                                     logger.DebugFormat("********报警 保存失败。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3},货架：{4}", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag, tmpShelf);
                                 }
 
@@ -708,12 +714,14 @@ namespace AnXinWH.SocketRFIDService
 
                                 if (saveflag2 > 0)
                                 {
+                                    Program.saveLog("点检", "2点检:" + tmpStrRFID, 3, 1);
 
                                     logger.DebugFormat("********点检 保存完成。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3},货架：{4}.", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag2, tmpShelf);
 
                                 }
                                 else
                                 {
+                                    Program.saveLog("点检", "2点检:" + tmpStrRFID, 3, 0);
 
                                     logger.DebugFormat("********点检 保存失败。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3},货架：{4}", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag2, tmpShelf);
                                 }
