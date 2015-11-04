@@ -150,7 +150,7 @@ namespace AnXinWH.SocketRFIDService
                     }
                     catch (Exception ex)
                     {
-                        logger.Error(ex.Message.ToString());
+                        logger.Error(ex);
                     }
                 }
             }
@@ -160,7 +160,7 @@ namespace AnXinWH.SocketRFIDService
                 {
                     ms.Dispose();
                 }
-                logger.Error(ex.Message.ToString());
+                logger.Error(ex);
             }
             finally
             {
@@ -999,7 +999,7 @@ namespace AnXinWH.SocketRFIDService
             }
             catch (Exception ex)
             {
-                logger.Error(ex.Message);
+                logger.Error(ex);
             }
             finally
             {
@@ -1027,7 +1027,7 @@ namespace AnXinWH.SocketRFIDService
                 }
                 catch (Exception ex)
                 {
-                    logger.Error(ex.Message);
+                    logger.Error(ex);
                 }
 
 
