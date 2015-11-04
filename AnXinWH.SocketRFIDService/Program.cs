@@ -23,6 +23,7 @@ namespace AnXinWH.SocketRFIDService
 
 
         public static string _sysCompareMin { get; private set; }
+        public static string _serverIP { get; private set; }
 
         public static string setValue(string strname, string value)
         {
@@ -43,7 +44,7 @@ namespace AnXinWH.SocketRFIDService
         /// <param name="mod_id">操作名称</param>
         /// <param name="types">0:入库、1：出库、2：上架、3：基本信息)</param>
         /// <param name="result">0/1</param>
-        public static void saveLog(string mod_id, string message,short types,  short result)
+        public static void saveLog(string mod_id, string message, short types, short result)
         {
             try
             {
@@ -130,6 +131,7 @@ namespace AnXinWH.SocketRFIDService
         {
 
             _sysCompareMin = setValue("sysCompareMin", "5");
+            _serverIP = setValue("ServerIP", "127.0.0.1");
 
         }
 

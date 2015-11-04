@@ -652,7 +652,7 @@ namespace AnXinWH.SocketRFIDService
                         using (var db = new MysqlDbContext())
                         {
 
-                            tmpStockDetail = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID)).FirstOrDefault();
+                            tmpStockDetail = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 1).FirstOrDefault();
 
                             var tmpCheckPoint = db.m_checkpoint.OrderBy(m => m.checktime).ToList();
                             var isToCheck = currTimeExit(tmpCheckPoint, tmpStrRFID);
@@ -666,12 +666,13 @@ namespace AnXinWH.SocketRFIDService
                                 #region 主表
                                 tmpNewt_checkresult.check_id = tmpGuidId;
                                 tmpNewt_checkresult.check_date = isToCheck.checktimeNow;
-                                tmpNewt_checkresult.bespeak_no = "RFID";
+                                tmpNewt_checkresult.bespeak_no = "";//RFID
                                 tmpNewt_checkresult.bespeak_date = isToCheck.checktime;
-                                tmpNewt_checkresult.user_no = "点检";
+                                tmpNewt_checkresult.user_no = Program._serverIP; //"";//点检
                                 tmpNewt_checkresult.user_nm = tmpStrRFID;
                                 tmpNewt_checkresult.status = 1;
-                                tmpNewt_checkresult.remark = "点检:" + isToCheck.checktime + ",RFID:" + tmpStrRFID;
+
+                                tmpNewt_checkresult.remark = "点检:" + isToCheck.checktime + ",收到 RFID:" + tmpStrRFID;
 
                                 tmpNewt_checkresult.addtime = DateTime.Now;
                                 tmpNewt_checkresult.adduser = "StocketRFID";
