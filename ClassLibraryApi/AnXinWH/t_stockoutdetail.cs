@@ -18,6 +18,11 @@ namespace ClassLibraryApi.AnXinWH
         [StringLength(10)]
         public string out_item_no { get; set; }
 
+        [Key]
+        [Column(Order = 2)]
+        [StringLength(96)]
+        public string rfid_no { get; set; }
+
         [Required]
         [StringLength(30)]
         public string cash_no { get; set; }

@@ -417,51 +417,64 @@ namespace AnXinWH.SocketRFIDService
 
                                 #region 查库存明细表
                                 //查库存明细表
-                                var tmpstockdetailForOut = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 1).First();
+                                var tmpstockdetailForOut = db.t_stockdetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.status == 1).FirstOrDefault();
 
-                                if (string.IsNullOrEmpty(tmpstockdetailForOut.receiptNo))
+                                if (tmpstockdetailForOut == null)
                                 {
-                                    logger.DebugFormat("*开始出库**********#########没有仓单号,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
-                                    //***********报警*********
-
-                                    var tmpNewAlerm = new t_alarmdata();
-                                    tmpNewAlerm.recd_id = DateTime.Now.ToString("yyyyMMddhhmmss") + "D" + _tmpRandom.Next(100000).ToString() + "R" + tmpStrRFID;
-                                    tmpNewAlerm.alarm_type = "Alarm_06";
-                                    tmpNewAlerm.depot_no = "0";
-                                    tmpNewAlerm.cell_no = tmpStrRFID;
-                                    tmpNewAlerm.begin_time = DateTime.Now;
-                                    tmpNewAlerm.over_time = DateTime.Now;
-                                    tmpNewAlerm.remark = "RFID:" + tmpStrRFID + "无出库指示。";
-                                    tmpNewAlerm.status = 1;
-                                    tmpNewAlerm.addtime = DateTime.Now;
-                                    tmpNewAlerm.adduser = "StocketRFID";
-                                    tmpNewAlerm.updtime = DateTime.Now;
-                                    tmpNewAlerm.upduser = "StocketRFID";
-                                    db.t_alarmdata.Add(tmpNewAlerm);
-                                    var saveflag = db.SaveChanges();
-
-                                    if (saveflag > 0)
-                                    {
-
-                                        logger.DebugFormat("********报警 保存完成。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3}.", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag);
-
-                                    }
-                                    else
-                                    {
-
-                                        logger.DebugFormat("********报警 保存失败。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3}", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag);
-                                    }
-                                    var tmpLedMsg = tmpStrRFID + "无出库指示.";
-                                    sendTxtToLED(tmpLedMsg, tmpDevice);
-
+                                    logger.DebugFormat("*****无效RFID:{0}.", tmpStrRFID);
                                     return false;
                                 }
-                                logger.DebugFormat("*开始出库**********#########共有{0}条记录.仓单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpstockdetailForOut.receiptNo, tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
-
                                 #endregion
+
                                 #region 货物出库明细
                                 //货物出库明细
-                                var tmpStockoutDetails = db.t_stockoutdetail.Where(m => m.receiptNo.Equals(tmpstockdetailForOut.receiptNo) && m.prdct_no.Equals(tmpstockdetailForOut.prdct_no) && m.status == 1).FirstOrDefault();
+                                t_stockoutdetail tmpStockoutDetails = null;
+                                var strremark = "";
+                                if (string.IsNullOrEmpty(tmpstockdetailForOut.receiptNo))
+                                {
+                                    #region 没有仓单号
+                                    logger.DebugFormat("*开始出库**********#########没有仓单号,货物编号:{0},托盘号:{1}，rfid_no:{2}", tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
+                                    ////***********报警*********
+
+                                    //var tmpNewAlerm = new t_alarmdata();
+                                    //tmpNewAlerm.recd_id = DateTime.Now.ToString("yyyyMMddhhmmss") + "D" + _tmpRandom.Next(100000).ToString() + "R" + tmpStrRFID;
+                                    //tmpNewAlerm.alarm_type = "Alarm_06";
+                                    //tmpNewAlerm.depot_no = "0";
+                                    //tmpNewAlerm.cell_no = tmpStrRFID;
+                                    //tmpNewAlerm.begin_time = DateTime.Now;
+                                    //tmpNewAlerm.over_time = DateTime.Now;
+                                    //tmpNewAlerm.remark = "RFID:" + tmpStrRFID + "无出库指示。";
+                                    //tmpNewAlerm.status = 1;
+                                    //tmpNewAlerm.addtime = DateTime.Now;
+                                    //tmpNewAlerm.adduser = "StocketRFID";
+                                    //tmpNewAlerm.updtime = DateTime.Now;
+                                    //tmpNewAlerm.upduser = "StocketRFID";
+                                    //db.t_alarmdata.Add(tmpNewAlerm);
+                                    //var saveflag = db.SaveChanges();
+
+                                    //if (saveflag > 0)
+                                    //{
+                                    //    logger.DebugFormat("********报警 保存完成。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3}.", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag);
+                                    //}
+                                    //else
+                                    //{
+
+                                    //    logger.DebugFormat("********报警 保存失败。IP:{0},移动标记：{1}，RFID:{2}.SaveFlag:{3}", RFIDClientIP, tmpMoveFlag, tmpStrRFID, saveflag);
+                                    //}
+                                    //var tmpLedMsg = tmpStrRFID + "无出库指示.";
+                                    //sendTxtToLED(tmpLedMsg, tmpDevice);
+                                    //return false;
+                                    #endregion
+
+                                    tmpStockoutDetails = db.t_stockoutdetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.prdct_no.Equals(tmpstockdetailForOut.prdct_no) && m.status == 1).FirstOrDefault();
+                                    strremark = "RFID:" + tmpStrRFID + ",无单号,没有查到[有效的]货物出库明细记录。";
+                                }
+                                else
+                                {
+                                    tmpStockoutDetails = db.t_stockoutdetail.Where(m => m.rfid_no.Equals(tmpStrRFID) && m.receiptNo.Equals(tmpstockdetailForOut.receiptNo) && m.prdct_no.Equals(tmpstockdetailForOut.prdct_no) && m.status == 1).FirstOrDefault();
+                                    strremark = "RFID:" + tmpStrRFID + ",仓单号:" + tmpstockdetailForOut.receiptNo + ",没有查到[有效的]货物出库明细记录。";
+                                }
+                                logger.DebugFormat("*开始出库**********#########共有{0}条记录.仓单号:{1},货物编号:{2},托盘号:{3}，rfid_no:{4}", tmpcont, tmpstockdetailForOut.receiptNo, tmpstockdetailForOut.prdct_no, tmpstockdetailForOut.ctnno_no, tmpStrRFID);
 
                                 if (tmpStockoutDetails == null)
                                 {
@@ -474,7 +487,7 @@ namespace AnXinWH.SocketRFIDService
                                     tmpNewAlerm.cell_no = tmpStrRFID;
                                     tmpNewAlerm.begin_time = DateTime.Now;
                                     tmpNewAlerm.over_time = DateTime.Now;
-                                    tmpNewAlerm.remark = "RFID:" + tmpStrRFID + ",仓单号:" + tmpstockdetailForOut.receiptNo + "没有查到[有效的]货物出库明细记录。";
+                                    tmpNewAlerm.remark = strremark;
                                     tmpNewAlerm.status = 1;
                                     tmpNewAlerm.addtime = DateTime.Now;
                                     tmpNewAlerm.adduser = "StocketRFID";
