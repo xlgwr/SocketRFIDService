@@ -16,17 +16,22 @@ namespace ClassLibraryApi.AnXinWH
         [StringLength(255)]
         public string alarm_type { get; set; }
 
-        [Required]
         [StringLength(255)]
         public string depot_no { get; set; }
 
-        [Required]
         [StringLength(255)]
         public string cell_no { get; set; }
 
         public DateTime begin_time { get; set; }
 
         public DateTime? over_time { get; set; }
+
+        public string param1 { get; set; }
+        public string param2 { get; set; }
+        public string param3 { get; set; }
+        public string param4 { get; set; }
+        public string param5 { get; set; }
+
 
         [StringLength(255)]
         public string remark { get; set; }

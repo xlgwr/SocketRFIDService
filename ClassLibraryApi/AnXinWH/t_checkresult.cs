@@ -12,21 +12,14 @@ namespace ClassLibraryApi.AnXinWH
         [StringLength(128)]
         public string check_id { get; set; }
 
-        public DateTime check_date { get; set; }
+        public string check_date { get; set; }
 
-        //[Required]
         [StringLength(30)]
         public string bespeak_no { get; set; }
 
-        //[Required]
-        [StringLength(48)]
-        public string bespeak_date { get; set; }
-
-        //[Required]
         [StringLength(16)]
         public string user_no { get; set; }
 
-        //[Required]
         [StringLength(32)]
         public string user_nm { get; set; }
 
