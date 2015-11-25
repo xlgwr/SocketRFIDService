@@ -61,8 +61,8 @@ namespace AnXinWH.SocketRFIDService
 
             try
             {
-                //scheduler.Start();
-                //AllMsg("Quartz服务成功启动.");
+                scheduler.Start();
+                AllMsg("Quartz服务成功启动.");
 
 
                 //
@@ -71,20 +71,34 @@ namespace AnXinWH.SocketRFIDService
                 DateTimeOffset runTime = DateBuilder.EvenSecondDate(DateTimeOffset.Now);
 
                 //get
-                #region satrtAutoGetXml job
+                #region satrtAutoGetXml 自动点检 job
+                var evenTime = 60;
+                logger.DebugFormat("******** 自动点检 **********周期:{0} 秒。", evenTime);
+                IJobDetail AutoCheckTimeJob = JobBuilder.Create<AutoCheckTimeJob>().WithIdentity("AutoCheckTimeJob", "AutoCheckTimeJobGroup").Build();
 
-                //IJobDetail AutoGetXml_job = JobBuilder.Create<AutoGetJob>().WithIdentity("autoGetXMLjob", "autoGetXMLGroup").Build();
-
-                //ITrigger AutoGetXml_trigger = TriggerBuilder.Create()
-                //    .WithIdentity("autoGetXMLTrigger", "autoGetXMLGroup")
-                //    .StartAt(runTime)
-                //    .WithSimpleSchedule(x => x.WithIntervalInMinutes(10).RepeatForever())
-                //    .Build();
-
-
-                //// Tell quartz to schedule the job using our trigger
-                //scheduler.ScheduleJob(AutoGetXml_job, AutoGetXml_trigger);
+                ITrigger AutoCheckTimeJob_trigger = TriggerBuilder.Create()
+                    .WithIdentity("AutoCheckTimeJobTrigger", "AutoCheckTimeJobGroup")
+                    .StartAt(runTime)
+                    .WithSimpleSchedule(x => x.WithIntervalInSeconds(evenTime).RepeatForever())
+                    .Build();
+                // Tell quartz to schedule the job using our trigger
+                scheduler.ScheduleJob(AutoCheckTimeJob, AutoCheckTimeJob_trigger);
                 #endregion
+                //get
+                #region satrtAutoGetXml 手动点检 job
+                var evenTime2 = 30;
+                logger.DebugFormat("******** 手动点检 **********周期:{0} 秒。", evenTime2);
+                IJobDetail AutoGetXml_job = JobBuilder.Create<AutoGetJob>().WithIdentity("AutoGetJob", "AutoGetJobGroup").Build();
+
+                ITrigger AutoGetXml_trigger = TriggerBuilder.Create()
+                    .WithIdentity("AutoGetJobTrigger", "AutoGetJobGroup")
+                    .StartAt(runTime)
+                    .WithSimpleSchedule(x => x.WithIntervalInSeconds(evenTime2).RepeatForever())
+                    .Build();
+                // Tell quartz to schedule the job using our trigger
+                scheduler.ScheduleJob(AutoGetXml_job, AutoGetXml_trigger);
+                #endregion
+
             }
             catch (Exception ex)
             {

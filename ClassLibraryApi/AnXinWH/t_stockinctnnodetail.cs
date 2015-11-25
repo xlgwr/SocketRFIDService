@@ -31,6 +31,15 @@ namespace ClassLibraryApi.AnXinWH
         [StringLength(50)]
         public string receiptNo { get; set; }
 
+        /// <summary>
+        /// Ð¶»õ
+        /// </summary>
+        public string device_id { get; set; }
+        /// <summary>
+        /// Èë¿â
+        /// </summary>
+        public string videodevice_id { get; set; }
+
         public float pqty { get; set; }
 
         public float qty { get; set; }

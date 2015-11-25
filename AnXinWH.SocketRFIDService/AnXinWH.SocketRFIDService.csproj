@@ -111,6 +111,7 @@
     <Compile Include="Dal\MysqlDbInterceptorTransientErrors.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="job\AutoCheckTimeJob.cs" />
     <Compile Include="job\AutoGetJob.cs" />
     <Compile Include="Led\tc_LED_API.cs" />
     <Compile Include="thread\TcpClientThread.cs" />

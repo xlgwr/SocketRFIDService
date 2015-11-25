@@ -120,8 +120,11 @@
     <Compile Include="AnXinWH\t_functioninfo.cs" />
     <Compile Include="AnXinWH\t_interface.cs" />
     <Compile Include="AnXinWH\t_roles.cs" />
+    <Compile Include="AnXinWH\t_Sample.cs" />
+    <Compile Include="AnXinWH\t_videodata.cs" />
     <Compile Include="AnXinWH\t_sampling.cs" />
     <Compile Include="AnXinWH\t_stock.cs" />
+    <Compile Include="AnXinWH\t_stockshelves.cs" />
     <Compile Include="AnXinWH\t_stockdetail.cs" />
     <Compile Include="AnXinWH\t_stockin.cs" />
     <Compile Include="AnXinWH\t_stockinctnno.cs" />

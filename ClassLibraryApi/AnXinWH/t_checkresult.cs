@@ -24,6 +24,7 @@ namespace ClassLibraryApi.AnXinWH
         public string user_nm { get; set; }
 
         public short status { get; set; }
+        public short checktype { get; set; }
 
         [StringLength(255)]
         public string remark { get; set; }

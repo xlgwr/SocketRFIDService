@@ -44,6 +44,7 @@ namespace ClassLibraryApi.AnXinWH
         public virtual DbSet<t_interface> t_interface { get; set; }
         public virtual DbSet<t_roles> t_roles { get; set; }
         public virtual DbSet<t_sampling> t_sampling { get; set; }
+        public virtual DbSet<t_videodata> t_videodata { get; set; }
         public virtual DbSet<t_stock> t_stock { get; set; }
         public virtual DbSet<t_stockdetail> t_stockdetail { get; set; }
         public virtual DbSet<t_stockin> t_stockin { get; set; }

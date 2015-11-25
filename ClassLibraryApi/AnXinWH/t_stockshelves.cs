@@ -6,7 +6,7 @@ namespace ClassLibraryApi.AnXinWH
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    public partial class t_stockoutctnnodetail
+    public partial class t_stockshelves
     {
         [Key]
         [Column(Order = 0)]
@@ -15,30 +15,34 @@ namespace ClassLibraryApi.AnXinWH
 
         [Key]
         [Column(Order = 1)]
-        [StringLength(48)]
-        public string prdct_no { get; set; }
-
-        [Key]
-        [Column(Order = 2)]
         [StringLength(96)]
         public string rfid_no { get; set; }
-
-        [Key]
-        [Column(Order = 3)]
-        [StringLength(30)]
-        public string ctnno_no { get; set; }
 
         [StringLength(50)]
         public string receiptNo { get; set; }
 
-        public string device_id { get; set; }
+        /// <summary>
+        /// 仓位号
+        /// </summary>
+        public string shelf_no { get; set; }
+
+        /// <summary>
+        /// 备货区号
+        /// </summary>
+        public string shelf_shelves { get; set; }
+
+        /// <summary>
+        /// 箱号
+        /// </summary>
+        public string ctnno_no { get; set; }
+
         public float pqty { get; set; }
 
         public float qty { get; set; }
 
-        public float? nwet { get; set; }
+        public float nwet { get; set; }
 
-        public float? gwet { get; set; }
+        public float gwet { get; set; }
 
         public short status { get; set; }
 

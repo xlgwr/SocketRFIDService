@@ -44,6 +44,8 @@ namespace ClassLibraryApi.AnXinWH
 
         public short status { get; set; }
 
+        public string device_id { get; set; }
+
         [StringLength(16)]
         public string adduser { get; set; }
 

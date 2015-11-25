@@ -24,6 +24,14 @@ namespace AnXinWH.SocketRFIDService
 
         public static string _sysCompareMin { get; private set; }
         public static string _serverIP { get; private set; }
+        //for checktime
+
+        public static int _checkCount { get; set; }
+        public static int _checkAutoCount { get; set; }
+
+        public static Random _tmpRandom = new Random(100000);
+        public static Dictionary<string, bool> _checkCurrRfid { get; set; }
+        public static Dictionary<string, bool> _checkAutoRfid { get; set; }
 
         public static string setValue(string strname, string value)
         {
@@ -55,14 +63,14 @@ namespace AnXinWH.SocketRFIDService
                     var tmpLog = new t_syslogrecd();
                     var guid = Guid.NewGuid();
                     var rand = new Random();
-                    tmpLog.log_id = DateTime.Now.ToString("yyyyMMddhhmmss") + "R" + rand.Next(100000).ToString();
+                    tmpLog.log_id = DateTime.Now.ToString("yyyyMMddHHmmss") + "R" + rand.Next(100000).ToString();
 
                     tmpLog.operatorid = "SocketRFID";
                     tmpLog.message = message;// "RFID采集";
                     tmpLog.type = types;
                     tmpLog.result = result;
                     tmpLog.mod_id = mod_id;//"StocketRFID";
-                    tmpLog.adduser = "StocketRFID";
+                    tmpLog.adduser = _serverIP;
                     tmpLog.addtime = DateTime.Now;
                     tmpLog.org_no = "SocketRFID";
                     db.t_syslogrecd.Add(tmpLog);
@@ -70,6 +78,41 @@ namespace AnXinWH.SocketRFIDService
                     db.SaveChanges();
 
                     logger.DebugFormat("*******SAVE LOG******");
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+            }
+        }
+        public static void saveVideoSet(string message, short channel)
+        {
+            try
+            {
+                //init mysql db
+                using (var db = new MysqlDbContext())
+                {
+
+                    var tmpt_videodata = new t_videodata();
+                    var guid = Guid.NewGuid();
+                    var rand = new Random();
+                    tmpt_videodata.video_no = DateTime.Now.ToString("yyyyMMddHHmmss") + "R" + rand.Next(100000).ToString();
+
+                    tmpt_videodata.message = message;
+                    tmpt_videodata.font_size = 20;
+                    tmpt_videodata.font_type = 20;
+                    tmpt_videodata.site = 0;
+                    tmpt_videodata.Channel = channel;
+                    tmpt_videodata.adduser = _serverIP;
+                    tmpt_videodata.addtime = DateTime.Now;
+                    tmpt_videodata.Version = "V1";
+                    tmpt_videodata.status = 0;
+                    tmpt_videodata.remark = "";
+                    db.t_videodata.Add(tmpt_videodata);
+
+                    db.SaveChanges();
+
+                    logger.DebugFormat("*******SAVE Video Set******");
                 }
             }
             catch (Exception ex)
@@ -132,6 +175,10 @@ namespace AnXinWH.SocketRFIDService
 
             _sysCompareMin = setValue("sysCompareMin", "5");
             _serverIP = setValue("ServerIP", "127.0.0.1");
+            _checkCount = 0;
+            _checkCurrRfid = new Dictionary<string, bool>();
+            _checkAutoCount = 0;
+            _checkAutoRfid = new Dictionary<string, bool>();
 
         }
 
